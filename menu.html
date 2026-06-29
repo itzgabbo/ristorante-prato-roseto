@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu - Ristorante Prato Roseto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/header.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #faf8f5;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 70px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 3px solid #DAA520;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background-color: white;
+            padding: 2px;
+        }
+
+        .restaurant-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #DAA520;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #DAA520;
+        }
+
+        .menu-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 2rem 2rem;
+        }
+
+        .menu-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .menu-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            color: #E1A74A;
+            margin-bottom: 1rem;
+        }
+
+        .menu-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .category-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            padding: 0 1rem;
+        }
+
+        .category-btn {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            border: 2px solid #ddd;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 600;
+            color: #555;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .category-btn:hover {
+            background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
+            color: white;
+            border-color: #DAA520;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #E1A74A 0%, #d4a13e 100%);
+            color: white;
+            border-color: #E1A74A;
+        }
+
+        .menu-section {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .menu-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            color: #E1A74A;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border-bottom: 3px solid #DAA520;
+            padding-bottom: 0.5rem;
+            text-transform: capitalize;
+        }
+
+        .menu-items {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #E1A74A;
+            margin-bottom: 0.3rem;
+        }
+
+        .item-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-top: 0.5rem;
+        }
+
+        .item-price {
+            font-weight: 700;
+            color: #DAA520;
+            font-size: 1.1rem;
+            margin-left: 1rem;
+            white-space: nowrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .no-items {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .menu-container {
+                padding: 180px 1rem 1rem;
+            }
+
+            .menu-title {
+                font-size: 2.2rem;
+            }
+
+            .category-buttons {
+                gap: 0.5rem;
+            }
+
+            .category-btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+
+            .menu-section {
+                padding: 1.5rem;
+            }
+
+            .menu-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .item-price {
+                margin-left: 0;
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <img src="logo.png" alt="Prato Roseto Logo" class="logo">
+                    <h1 class="restaurant-name">Prato Roseto</h1>
+                </div>
+                <nav class="main-nav">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="menu.html" class="nav-link active">Menu</a>
+                    <a href="index.html#prenota" class="nav-link">Prenota</a>
+                    <a href="index.html#about" class="nav-link">Chi Siamo</a>
+                    <a href="index.html#contact" class="nav-link">Contatti</a>
+                </nav>
+                <button class="mobile-menu-btn" aria-label="Menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="menu-container">
+        <div class="menu-header">
+            <h1 class="menu-title">Il Nostro Menu</h1>
+            <p class="menu-subtitle">Scopri i sapori autentici della tradizione italiana, preparati con ingredienti freschi e di qualità</p>
+        </div>
+
+        <!-- Pulsanti delle categorie -->
+        <div class="category-buttons">
+            <button class="category-btn active" data-category="all">Tutto</button>
+            <button class="category-btn" data-category="antipasti">Antipasti</button>
+            <button class="category-btn" data-category="primi">Primi Piatti</button>
+            <button class="category-btn" data-category="secondi">Secondi Piatti</button>
+            <button class="category-btn" data-category="contorni">Contorni</button>
+            <button class="category-btn" data-category="pizza">Pizze</button>
+            <button class="category-btn" data-category="dessert">Dessert</button>
+            <button class="category-btn" data-category="bevande">Bevande</button>
+            <button class="category-btn" data-category="vini">Vini</button>
+            <button class="category-btn" data-category="birre">Birre</button>
+        </div>
+
+        <!-- Sezioni del menu generate dinamicamente -->
+        <div id="menu-sections">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Caricamento del menu in corso...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script per il menu a scomparsa su mobile -->
+    <script src="js/mobile-menu.js"></script>
+    
+    <!-- Script per il caricamento dinamico del menu -->
+    <!-- Includi il file JavaScript per la gestione del menu -->
+    <script src="js/menu.js"></script>
+    
+    <!-- Script per la gestione dei pulsanti delle categorie -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestione dei pulsanti delle categorie
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Rimuovi la classe active da tutti i pulsanti
+                    categoryButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Aggiungi la classe active al pulsante cliccato
+                    this.classList.add('active');
+                    
+                    // Mostra/nascondi le sezioni in base alla categoria selezionata
+                    const category = this.getAttribute('data-category');
+                    const sections = document.querySelectorAll('.menu-section');
+                    
+                    if (category === 'all') {
+                        sections.forEach(section => {
+                            section.style.display = 'block';
+                        });
+                    } else {
+                        sections.forEach(section => {
+                            if (section.id === category) {
+                                section.style.display = 'block';
+                            } else {
+                                section.style.display = 'none';
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

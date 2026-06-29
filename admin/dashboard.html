@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Menu - Ristorante Prato Roseto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            transition: background-color 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        
+        .btn:hover {
+            background-color: #d1943a;
+            color: white;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .btn-outline:hover {
+            background: rgba(225, 167, 74, 0.1);
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .menu-container {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .menu-categories {
+            margin-bottom: 1.5rem;
+        }
+        
+        .category-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+        
+        .category-tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .category-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .category-tab:hover:not(.active) {
+            color: var(--secondary-color);
+            border-bottom-color: #ddd;
+        }
+        
+        .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .menu-item-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #eee;
+        }
+        
+        .menu-item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .menu-item-image {
+            height: 180px;
+            background-color: #f5f5f5;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .menu-item-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .menu-item-details {
+            padding: 1.5rem;
+        }
+        
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .menu-item-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0;
+        }
+        
+        .menu-item-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .menu-item-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .menu-item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .menu-item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .status-toggle {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .status-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img src="../logo.png" alt="Prato Roseto Logo" class="logo">
+                <h2>Menu</h2>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">Admin</span>
+                    <a href="#" id="logout" class="logout-link">Esci</a>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchMenu" placeholder="Cerca nel menu...">
+                </div>
+            </header>
+            
+            <div class="content">
+                <div class="page-header">
+                    <h1>Gestione Menu</h1>
+                    <button class="btn" id="addDishBtn">
+                        <i class="fas fa-plus"></i> Aggiungi Piatto
+                    </button>
+                </div>
+                
+                <div class="menu-container">
+                    <div class="menu-categories">
+                        <div class="category-tabs">
+                            <div class="category-tab active" data-category="all">Tutti</div>
+                            <div class="category-tab" data-category="antipasti">Antipasti</div>
+                            <div class="category-tab" data-category="primi">Primi Piatti</div>
+                            <div class="category-tab" data-category="secondi">Secondi</div>
+                            <div class="category-tab" data-category="contorni">Contorni</div>
+                            <div class="category-tab" data-category="dessert">Dessert</div>
+                            <div class="category-tab" data-category="bevande">Bevande</div>
+                        </div>
+                        
+                        <div class="menu-items" id="menuItems">
+                            <!-- I piatti verranno caricati qui dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modale Aggiungi/Modifica Piatto -->
+    <div class="modal" id="dishModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Aggiungi Nuovo Piatto</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="dishForm">
+                    <div class="form-group">
+                        <label for="dishName">Nome Piatto *</label>
+                        <input type="text" id="dishName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dishCategory">Categoria *</label>
+                        <select id="dishCategory" class="form-control" required>
+                            <option value="">Seleziona una categoria</option>
+                            <option value="antipasti">Antipasti</option>
+                            <option value="primi">Primi Piatti</option>
+                            <option value="secondi">Secondi</option>
+                            <option value="contorni">Contorni</option>
+                            <option value="dessert">Dessert</option>
+                            <option value="bevande">Bevande</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="dishPrice">Prezzo (€) *</label>
+                            <input type="number" id="dishPrice" class="form-control" min="0" step="0.01" required>
+                        </div>
+                        
+                        <div class="form-group" style="flex: 1;">
+                            <label for="dishOrder">Ordinamento</label>
+                            <input type="number" id="dishOrder" class="form-control" min="0" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dishDescription">Descrizione</label>
+                        <textarea id="dishDescription" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Immagine del piatto</label>
+                        <div class="image-upload" id="imageUpload">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Trascina un'immagine qui o clicca per selezionare</p>
+                            <img id="imagePreview" class="preview-image" alt="Anteprima immagine">
+                            <input type="file" id="dishImage" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancelDish">Annulla</button>
+                        <button type="submit" class="btn" id="saveDish">Salva Piatto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verifica l'autenticazione
+            if (!Auth.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Dati di esempio per il menu
+            let menuItems = [
+                {
+                    id: 1,
+                    name: 'Bruschetta al Pomodoro',
+                    category: 'antipasti',
+                    price: 5.50,
+                    description: 'Pane tostato con pomodoro fresco, aglio e basilico',
+                    image: '../piatto.jpg',
+                    isAvailable: true,
+                    order: 1
+                },
+                {
+                    id: 2,
+                    name: 'Spaghetti Carbonara',
+                    category: 'primi',
+                    price: 12.00,
+                    description: 'Spaghetti con uova, guanciale, pecorino e pepe nero',
+                    image: '../piatto.jpg',
+                    isAvailable: true,
+                    order: 1
+                },
+                {
+                    id: 3,
+                    name: 'Tiramisù',
+                    category: 'dessert',
+                    price: 6.50,
+                    description: 'Dolce al cucchiaio con savoiardi, caffè, mascarpone e cacao',
+                    image: '../piatto.jpg',
+                    isAvailable: true,
+                    order: 1
+                }
+            ];
+
+            // Elementi del DOM
+            const menuItemsContainer = document.getElementById('menuItems');
+            const addDishBtn = document.getElementById('addDishBtn');
+            const dishModal = document.getElementById('dishModal');
+            const closeModal = document.getElementById('closeModal');
+            const cancelDish = document.getElementById('cancelDish');
+            const dishForm = document.getElementById('dishForm');
+            const imageUpload = document.getElementById('imageUpload');
+            const dishImage = document.getElementById('dishImage');
+            const imagePreview = document.getElementById('imagePreview');
+            const searchInput = document.getElementById('searchMenu');
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            
+            let currentDishId = null;
+            let currentCategory = 'all';
+
+            // Carica i piatti nel menu
+            function loadMenuItems(category = 'all', searchQuery = '') {
+                menuItemsContainer.innerHTML = '';
+                
+                let filteredItems = [...menuItems];
+                
+                // Filtra per categoria
+                if (category !== 'all') {
+                    filteredItems = filteredItems.filter(item => item.category === category);
+                }
+                
+                // Filtra per ricerca
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    filteredItems = filteredItems.filter(item => 
+                        item.name.toLowerCase().includes(query) || 
+                        item.description.toLowerCase().includes(query)
+                    );
+                }
+                
+                // Ordina i piatti
+                filteredItems.sort((a, b) => a.order - b.order);
+                
+                if (filteredItems.length === 0) {
+                    menuItemsContainer.innerHTML = `
+                        <div class="no-items">
+                            <i class="fas fa-utensils"></i>
+                            <p>Nessun piatto trovato</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Aggiungi i piatti al DOM
+                filteredItems.forEach(item => {
+                    const dishElement = document.createElement('div');
+                    dishElement.className = 'menu-item-card';
+                    dishElement.innerHTML = `
+                        <div class="menu-item-image" style="background-image: url('${item.image}')">
+                            ${!item.isAvailable ? '<span class="menu-item-badge">Non disponibile</span>' : ''}
+                        </div>
+                        <div class="menu-item-details">
+                            <div class="menu-item-header">
+                                <h3 class="menu-item-name">${item.name}</h3>
+                                <span class="menu-item-price">€${item.price.toFixed(2)}</span>
+                            </div>
+                            <p class="menu-item-description">${item.description}</p>
+                            <div class="menu-item-footer">
+                                <label class="status-toggle">
+                                    <input type="checkbox" ${item.isAvailable ? 'checked' : ''} data-id="${item.id}">
+                                    <span class="slider"></span>
+                                </label>
+                                <div class="menu-item-actions">
+                                    <button class="action-btn edit-btn" data-id="${item.id}" title="Modifica">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn delete-btn" data-id="${item.id}" title="Elimina">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    menuItemsContainer.appendChild(dishElement);
+                });
+                
+                // Aggiungi gestori di eventi ai pulsanti
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const dishId = parseInt(e.currentTarget.getAttribute('data-id'));
+                        editDish(dishId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const dishId = parseInt(e.currentTarget.getAttribute('data-id'));
+                        deleteDish(dishId);
+                    });
+                });
+                
+                document.querySelectorAll('.status-toggle input').forEach(toggle => {
+                    toggle.addEventListener('change', (e) => {
+                        const dishId = parseInt(e.target.getAttribute('data-id'));
+                        toggleDishAvailability(dishId, e.target.checked);
+                    });
+                });
+            }
+            
+            // Aggiungi un nuovo piatto
+            function addDish() {
+                currentDishId = null;
+                dishForm.reset();
+                imagePreview.style.display = 'none';
+                document.getElementById('modalTitle').textContent = 'Aggiungi Nuovo Piatto';
+                dishModal.style.display = 'flex';
+            }
+            
+            // Modifica un piatto esistente
+            function editDish(id) {
+                const dish = menuItems.find(item => item.id === id);
+                if (!dish) return;
+                
+                currentDishId = id;
+                document.getElementById('modalTitle').textContent = 'Modifica Piatto';
+                document.getElementById('dishName').value = dish.name;
+                document.getElementById('dishCategory').value = dish.category;
+                document.getElementById('dishPrice').value = dish.price;
+                document.getElementById('dishDescription').value = dish.description || '';
+                document.getElementById('dishOrder').value = dish.order || 0;
+                
+                if (dish.image) {
+                    imagePreview.src = dish.image;
+                    imagePreview.style.display = 'block';
+                } else {
+                    imagePreview.style.display = 'none';
+                }
+                
+                dishModal.style.display = 'flex';
+            }
+            
+            // Elimina un piatto
+            function deleteDish(id) {
+                if (confirm('Sei sicuro di voler eliminare questo piatto?')) {
+                    menuItems = menuItems.filter(item => item.id !== id);
+                    loadMenuItems(currentCategory, searchInput.value);
+                    // Qui andrebbe una chiamata API per salvare le modifiche
+                }
+            }
+            
+            // Attiva/disattiva la disponibilità di un piatto
+            function toggleDishAvailability(id, isAvailable) {
+                const dish = menuItems.find(item => item.id === id);
+                if (dish) {
+                    dish.isAvailable = isAvailable;
+                    // Qui andrebbe una chiamata API per aggiornare lo stato
+                }
+            }
+            
+            // Gestione eventi
+            addDishBtn.addEventListener('click', addDish);
+            
+            closeModal.addEventListener('click', () => {
+                dishModal.style.display = 'none';
+            });
+            
+            cancelDish.addEventListener('click', () => {
+                dishModal.style.display = 'none';
+            });
+            
+            // Chiudi il modale cliccando fuori dal contenuto
+            window.addEventListener('click', (e) => {
+                if (e.target === dishModal) {
+                    dishModal.style.display = 'none';
+                }
+            });
+            
+            // Gestione upload immagine
+            imageUpload.addEventListener('click', () => {
+                dishImage.click();
+            });
+            
+            dishImage.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        imagePreview.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Gestione invio form
+            dishForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const dishData = {
+                    id: currentDishId || Date.now(),
+                    name: document.getElementById('dishName').value,
+                    category: document.getElementById('dishCategory').value,
+                    price: parseFloat(document.getElementById('dishPrice').value),
+                    description: document.getElementById('dishDescription').value,
+                    order: parseInt(document.getElementById('dishOrder').value) || 0,
+                    image: imagePreview.src || '../piatto.jpg',
+                    isAvailable: true
+                };
+                
+                if (currentDishId) {
+                    // Modifica piatto esistente
+                    const index = menuItems.findIndex(item => item.id === currentDishId);
+                    if (index !== -1) {
+                        menuItems[index] = { ...menuItems[index], ...dishData };
+                    }
+                } else {
+                    // Aggiungi nuovo piatto
+                    menuItems.push(dishData);
+                }
+                
+                // Ricarica il menu
+                loadMenuItems(currentCategory, searchInput.value);
+                
+                // Chiudi il modale
+                dishModal.style.display = 'none';
+                
+                // Qui andrebbe una chiamata API per salvare le modifiche
+                console.log('Piatto salvato:', dishData);
+            });
+            
+            // Gestione ricerca
+            searchInput.addEventListener('input', (e) => {
+                loadMenuItems(currentCategory, e.target.value);
+            });
+            
+            // Gestione tab categorie
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelector('.category-tab.active').classList.remove('active');
+                    tab.classList.add('active');
+                    currentCategory = tab.getAttribute('data-category');
+                    loadMenuItems(currentCategory, searchInput.value);
+                });
+            });
+            
+            // Carica il menu iniziale
+            loadMenuItems();
+        });
+    </script>
+    
+    <style>
+        /* Stili per il modale */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--secondary-color);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: var(--dark-gray);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark-gray);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        
+        .image-upload {
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .image-upload:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(225, 167, 74, 0.05);
+        }
+        
+        .image-upload i {
+            font-size: 2rem;
+            color: #999;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .image-upload p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .no-items {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 0;
+            color: #999;
+        }
+        
+        .no-items i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-items {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .form-row .form-group {
+                margin-bottom: 1.5rem;
+            }
+        }
+    </style>
+</body>
+</html>

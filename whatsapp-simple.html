@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test WhatsApp - Ristorante Prato Roseto</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #E1A74A;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .whatsapp-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        input, select, textarea {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #25D366;
+        }
+        
+        .whatsapp-button {
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .whatsapp-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+        }
+        
+        .message-status {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .message-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .reservation-fields {
+            background: rgba(37, 211, 102, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 1px solid rgba(37, 211, 102, 0.2);
+            display: none;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fab fa-whatsapp" style="color: #25D366;"></i> Test WhatsApp</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Invia un messaggio di prova al ristorante via WhatsApp
+        </p>
+        
+        <form id="whatsappForm" class="whatsapp-form">
+            <div class="form-group">
+                <label for="customerName">Nome *</label>
+                <input type="text" id="customerName" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="customerPhone">Telefono *</label>
+                <input type="tel" id="customerPhone" name="phone" required placeholder="+39 123 456 7890">
+            </div>
+            
+            <div class="form-group">
+                <label for="messageType">Tipo di richiesta</label>
+                <select id="messageType" name="messageType">
+                    <option value="info">Informazioni generali</option>
+                    <option value="reservation">Prenotazione tavolo</option>
+                    <option value="takeaway">Ordine da asporto</option>
+                    <option value="event">Eventi privati</option>
+                </select>
+            </div>
+            
+            <div id="reservationFields" class="reservation-fields">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reservationDate">Data</label>
+                        <input type="date" id="reservationDate" name="reservationDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="reservationTime">Ora</label>
+                        <input type="time" id="reservationTime" name="reservationTime">
+                    </div>
+                    <div class="form-group">
+                        <label for="guests">Persone</label>
+                        <select id="guests" name="guests">
+                            <option value="1">1 persona</option>
+                            <option value="2">2 persone</option>
+                            <option value="3">3 persone</option>
+                            <option value="4">4 persone</option>
+                            <option value="5">5 persone</option>
+                            <option value="6">6 persone</option>
+                            <option value="7">7 persone</option>
+                            <option value="8">8 persone</option>
+                            <option value="9+">9+ persone</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="customerMessage">Messaggio *</label>
+                <textarea id="customerMessage" name="message" rows="4" required placeholder="Scrivi qui il tuo messaggio..."></textarea>
+            </div>
+            
+            <button type="submit" class="whatsapp-button">
+                <i class="fab fa-whatsapp"></i>
+                Invia su WhatsApp
+            </button>
+        </form>
+        
+        <div id="messageStatus" class="message-status"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageTypeSelect = document.getElementById('messageType');
+            const reservationFields = document.getElementById('reservationFields');
+            const whatsappForm = document.getElementById('whatsappForm');
+            const messageStatus = document.getElementById('messageStatus');
+
+            messageTypeSelect.addEventListener('change', function() {
+                if (this.value === 'reservation') {
+                    reservationFields.style.display = 'block';
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('reservationDate').min = today;
+                } else {
+                    reservationFields.style.display = 'none';
+                }
+            });
+
+            whatsappForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const submitButton = this.querySelector('.whatsapp-button');
+                const originalButtonText = submitButton.innerHTML;
+
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Invio in corso...';
+                showMessage('Invio del messaggio in corso...', 'loading');
+
+                try {
+                    const formData = new FormData(this);
+                    const data = Object.fromEntries(formData.entries());
+
+                    const payload = {
+                        name: data.name,
+                        phone: data.phone,
+                        message: data.message,
+                    };
+
+                    if (data.messageType === 'reservation' && data.reservationDate && data.reservationTime && data.guests) {
+                        payload.reservationDate = data.reservationDate;
+                        payload.reservationTime = data.reservationTime;
+                        payload.guests = data.guests;
+                    }
+
+                    const response = await fetch('/api/send-whatsapp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        showMessage('✅ Messaggio inviato con successo! Ti risponderemo presto su WhatsApp.', 'success');
+                        this.reset();
+                        reservationFields.style.display = 'none';
+                    } else {
+                        throw new Error(result.error || 'Errore nell\'invio del messaggio');
+                    }
+                } catch (error) {
+                    console.error('Error sending WhatsApp message:', error);
+                    showMessage('❌ Errore nell\'invio del messaggio. Riprova più tardi.', 'error');
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+                }
+            });
+
+            function showMessage(message, type) {
+                messageStatus.textContent = message;
+                messageStatus.className = `message-status ${type}`;
+                messageStatus.style.display = 'block';
+                
+                if (type === 'success') {
+                    setTimeout(() => {
+                        messageStatus.style.display = 'none';
+                    }, 5000);
+                }
+            }
+
+            // Phone number formatting
+            const phoneInput = document.getElementById('customerPhone');
+            phoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.startsWith('39')) {
+                    value = '+' + value;
+                } else if (value.startsWith('3') && value.length >= 10) {
+                    value = '+39' + value;
+                }
+                e.target.value = value;
+            });
+        });
+    </script>
+</body>
+</html>

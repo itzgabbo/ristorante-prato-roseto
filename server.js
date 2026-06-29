@@ -1,0 +1,164 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const dotenv = require('dotenv');
+const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+
+const envPath = path.join(__dirname, 'config', 'config.env');
+const envResult = dotenv.config({ path: envPath });
+
+if (envResult.error && !process.env.MONGO_URI) {
+  dotenv.config();
+}
+
+if (envResult.error && process.env.NODE_ENV !== 'production') {
+  console.warn('Avviso: config/config.env non trovato. Uso variabili di ambiente di sistema.');
+}
+
+const connectDB = require('./server/config/db');
+const createDefaultAdmin = require('./server/utils/seedAdmin');
+const { protect } = require('./server/middleware/auth');
+
+connectDB().then(async () => {
+  if (process.env.SEED_ADMIN !== 'false') {
+    await createDefaultAdmin();
+  }
+});
+
+const app = express();
+
+const menuRoutes = require('./server/routes/menu');
+const authRoutes = require('./server/routes/auth');
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 100,
+});
+
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+app.use(limiter);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(cors());
+app.use(express.static(path.join(__dirname)));
+
+const PORT = process.env.PORT || 3000;
+
+function requireTwilioConfig() {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioWhatsAppNumber = process.env.TWILIO_WHATSAPP_NUMBER;
+  const restaurantWhatsAppNumber = process.env.RESTAURANT_WHATSAPP_NUMBER;
+
+  if (!accountSid || !authToken || !twilioWhatsAppNumber || !restaurantWhatsAppNumber) {
+    return null;
+  }
+
+  return {
+    client: require('twilio')(accountSid, authToken),
+    twilioWhatsAppNumber,
+    restaurantWhatsAppNumber,
+  };
+}
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/menu.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'menu.html'));
+});
+
+app.use('/api/auth', authRoutes);
+app.use('/api/menu', menuRoutes);
+
+app.get('/admin/dashboard.html', protect, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'dashboard.html'));
+});
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
+
+app.post('/api/send-whatsapp', async (req, res) => {
+  try {
+    const twilioConfig = requireTwilioConfig();
+    if (!twilioConfig) {
+      return res.status(503).json({
+        success: false,
+        error: 'Servizio WhatsApp non configurato',
+      });
+    }
+
+    const { name, phone, message, reservationDate, reservationTime, guests } = req.body;
+
+    if (!name || !phone || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'Nome, telefono e messaggio sono obbligatori',
+      });
+    }
+
+    let formattedMessage = `🍽️ *Nuovo messaggio da ${name}*\n\n`;
+    formattedMessage += `📱 *Telefono:* ${phone}\n`;
+    formattedMessage += `💬 *Messaggio:* ${message}\n`;
+
+    if (reservationDate && reservationTime && guests) {
+      formattedMessage += `\n📅 *Prenotazione richiesta:*\n`;
+      formattedMessage += `📆 Data: ${reservationDate}\n`;
+      formattedMessage += `🕐 Ora: ${reservationTime}\n`;
+      formattedMessage += `👥 Persone: ${guests}\n`;
+    }
+
+    formattedMessage += `\n_Messaggio inviato dal sito web del Ristorante Prato Roseto_`;
+
+    const messageResponse = await twilioConfig.client.messages.create({
+      body: formattedMessage,
+      from: twilioConfig.twilioWhatsAppNumber,
+      to: twilioConfig.restaurantWhatsAppNumber,
+    });
+
+    res.json({
+      success: true,
+      message: 'Messaggio inviato con successo! Ti risponderemo presto su WhatsApp.',
+      messageSid: messageResponse.sid,
+    });
+  } catch (error) {
+    console.error('Error sending WhatsApp message:', error);
+
+    let errorMessage = "Errore nell'invio del messaggio. Riprova più tardi.";
+
+    if (error.code === 20003) {
+      errorMessage = 'Errore di autenticazione Twilio. Controlla le credenziali.';
+    } else if (error.code === 21211) {
+      errorMessage = 'Numero WhatsApp non valido.';
+    } else if (error.code === 21408) {
+      errorMessage = 'Numero WhatsApp non autorizzato per questo account Twilio.';
+    }
+
+    res.status(500).json({
+      success: false,
+      error: errorMessage,
+      details: error.message,
+    });
+  }
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});

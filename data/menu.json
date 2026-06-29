@@ -1,0 +1,31 @@
+{
+  "dishes": [
+    {
+      "id": 1,
+      "name": "Bruschetta al Pomodoro",
+      "description": "Pane tostato con pomodoro fresco, aglio e basilico",
+      "price": 5.5,
+      "category": "antipasti",
+      "isAvailable": true,
+      "order": 1
+    },
+    {
+      "id": 2,
+      "name": "Spaghetti Carbonara",
+      "description": "Pasta con uova, guanciale, pecorino e pepe nero",
+      "price": 12,
+      "category": "primi",
+      "isAvailable": true,
+      "order": 1
+    },
+    {
+      "id": 3,
+      "name": "Tiramisù",
+      "description": "Dolce al cucchiaio con savoiardi, caffè e mascarpone",
+      "price": 6,
+      "category": "dessert",
+      "isAvailable": true,
+      "order": 1
+    }
+  ]
+}

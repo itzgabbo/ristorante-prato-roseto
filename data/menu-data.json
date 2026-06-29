@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Bruschetta al Pomodoro",
+    "description": "Pane tostato con pomodoro fresco, aglio e basilico",
+    "price": 5.50,
+    "category": "antipasti",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Spaghetti Carbonara",
+    "description": "Pasta con uova, guanciale, pecorino e pepe nero",
+    "price": 12.00,
+    "category": "primi",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Cotoletta alla Milanese",
+    "description": "Cotoletta di vitello impanata con patate al forno",
+    "price": 15.00,
+    "category": "secondi",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Insalata Mista",
+    "description": "Misto di verdure fresche di stagione",
+    "price": 4.50,
+    "category": "contorni",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Pizza Margherita",
+    "description": "Pomodoro, mozzarella, basilico fresco",
+    "price": 8.00,
+    "category": "pizza",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Tiramisù",
+    "description": "Dolce al cucchiaio con savoiardi, caffè e mascarpone",
+    "price": 6.00,
+    "category": "dessert",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Acqua Naturale",
+    "description": "Bottiglia da 1L",
+    "price": 2.00,
+    "category": "bevande",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Chianti Classico",
+    "description": "Vino rosso toscano, bicchiere",
+    "price": 5.00,
+    "category": "vini",
+    "isAvailable": true,
+    "order": 1
+  },
+  {
+    "name": "Birra alla Spina",
+    "description": "Birra chiara, media 40cl",
+    "price": 4.50,
+    "category": "birre",
+    "isAvailable": true,
+    "order": 1
+  }
+]
