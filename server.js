@@ -42,16 +42,27 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 100,
-});
+// Rate Limiter - configurabile tramite variabili d'ambiente
+const enableRateLimit = process.env.ENABLE_RATE_LIMIT === 'true';
+if (enableRateLimit) {
+  const limiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || (15 * 60 * 1000), // 15 minuti
+    max: parseInt(process.env.RATE_LIMIT_MAX) || 500, // 500 richieste per finestra
+    message: {
+      success: false,
+      error: 'Troppe richieste, riprova più tardi.'
+    }
+  });
+  app.use(limiter);
+  console.log('Rate limiter attivato');
+} else {
+  console.log('Rate limiter disattivato');
+}
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());
-app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
