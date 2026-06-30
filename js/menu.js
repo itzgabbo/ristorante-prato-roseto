@@ -4,7 +4,6 @@
  */
 
 document.addEventListener('DOMContentLoaded', async function() {
-    const menuSections = document.querySelectorAll('.menu-section');
     const menuContainer = document.getElementById('menu-sections');
     
     // Crea le sezioni del menu dinamicamente
@@ -18,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         const section = document.createElement('div');
         section.className = 'menu-section';
         section.id = category;
+        section.style.display = category === 'antipasti' ? 'block' : 'none'; // Mostra solo antipasti di default
         section.innerHTML = `
             <h2 class="section-title">${category.charAt(0).toUpperCase() + category.slice(1)}</h2>
             <div class="menu-items"></div>
@@ -63,12 +63,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
         
-        // Mostra la prima sezione per default
-        const firstSection = document.querySelector('.menu-section:not([style*="display: none"])');
-        if (firstSection) {
-            firstSection.style.display = 'block';
-        }
-        
     } catch (error) {
         console.error('Errore nel caricamento del menu:', error);
         
@@ -90,9 +84,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     } finally {
         showLoading(false);
     }
-    
-    // Gestione dei pulsanti delle categorie
-    setupCategoryButtons();
 });
 
 /**

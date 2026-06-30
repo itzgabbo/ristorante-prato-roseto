@@ -248,12 +248,20 @@
         <div class="menu-header">
             <h1 class="menu-title">Il Nostro Menu</h1>
             <p class="menu-subtitle">Scopri i sapori autentici della tradizione italiana, preparati con ingredienti freschi e di qualità</p>
+            <!-- QR Code per il menu -->
+            <div class="qrcode-container" style="margin-top: 2rem;">
+                <img 
+                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ristorante-prato-roseto.onrender.com/menu.html" 
+                    alt="QR Code Menu" 
+                    style="border: 5px solid #E1A74A; border-radius: 10px;"
+                />
+                <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Inquadra per accedere al menu</p>
+            </div>
         </div>
 
         <!-- Pulsanti delle categorie -->
         <div class="category-buttons">
-            <button class="category-btn active" data-category="all">Tutto</button>
-            <button class="category-btn" data-category="antipasti">Antipasti</button>
+            <button class="category-btn active" data-category="antipasti">Antipasti</button>
             <button class="category-btn" data-category="primi">Primi Piatti</button>
             <button class="category-btn" data-category="secondi">Secondi Piatti</button>
             <button class="category-btn" data-category="contorni">Contorni</button>
@@ -285,6 +293,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Gestione dei pulsanti delle categorie
             const categoryButtons = document.querySelectorAll('.category-btn');
+            const sections = document.querySelectorAll('.menu-section');
+            
+            // Funzione per mostrare una categoria specifica
+            function showCategory(category) {
+                sections.forEach(section => {
+                    if (section.id === category) {
+                        section.style.display = 'block';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Mostra Antipasti di default
+            showCategory('antipasti');
             
             categoryButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -294,23 +317,9 @@
                     // Aggiungi la classe active al pulsante cliccato
                     this.classList.add('active');
                     
-                    // Mostra/nascondi le sezioni in base alla categoria selezionata
+                    // Mostra la categoria selezionata
                     const category = this.getAttribute('data-category');
-                    const sections = document.querySelectorAll('.menu-section');
-                    
-                    if (category === 'all') {
-                        sections.forEach(section => {
-                            section.style.display = 'block';
-                        });
-                    } else {
-                        sections.forEach(section => {
-                            if (section.id === category) {
-                                section.style.display = 'block';
-                            } else {
-                                section.style.display = 'none';
-                            }
-                        });
-                    }
+                    showCategory(category);
                 });
             });
         });
