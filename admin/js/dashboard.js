@@ -20,17 +20,28 @@ async function fetchData(url, options = {}) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
+        console.log('Richiesta API:', url, options);
         const response = await fetch(url, {
             ...options,
             headers
         });
 
+        console.log('Risposta API:', response.status);
+
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Errore nella richiesta');
+            let errorMsg = 'Errore nella richiesta';
+            try {
+                const error = await response.json();
+                errorMsg = error.message || errorMsg;
+            } catch (e) {
+                errorMsg = `Errore ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMsg);
         }
 
-        return await response.json();
+        const data = await response.json();
+        console.log('Dati ricevuti:', data);
+        return data;
     } catch (error) {
         console.error('Errore nella richiesta API:', error);
         throw error;
@@ -38,8 +49,11 @@ async function fetchData(url, options = {}) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard caricata');
+    
     // Verifica l'autenticazione
     if (!Auth.isAuthenticated()) {
+        console.log('Non autenticato, reindirizzamento a login');
         window.location.href = 'login.html';
         return;
     }
@@ -61,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Carica i piatti dal server
     async function loadMenuItems(category = 'all', searchQuery = '') {
         try {
+            console.log('Caricamento menu...');
             showLoading(true);
             
             // Costruisci l'URL con i parametri di query
@@ -72,12 +87,30 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await fetchData(url);
             
             allMenuItems = data.data || [];
+            console.log('Piatti caricati:', allMenuItems.length);
             renderMenuItems(allMenuItems, category, searchQuery);
             
             return allMenuItems;
         } catch (error) {
             console.error('Errore nel caricamento del menu:', error);
-            showNotification('Errore nel caricamento del menu', 'error');
+            showNotification(`Errore nel caricamento del menu: ${error.message}`, 'error');
+            
+            // Mostra un messaggio chiaro nel contenitore
+            menuItemsContainer.innerHTML = `
+                <div class="no-items">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Errore nel caricamento del menu</p>
+                    <p style="font-size: 0.9rem; color: #f44336;">${error.message}</p>
+                    <button class="btn btn-outline mt-2" id="retryBtn">Riprova</button>
+                </div>
+            `;
+            
+            // Aggiungi gestore per il pulsante di retry
+            const retryBtn = document.getElementById('retryBtn');
+            if (retryBtn) {
+                retryBtn.addEventListener('click', () => loadMenuItems(currentCategory, searchInput.value));
+            }
+            
             return [];
         } finally {
             showLoading(false);
@@ -86,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Renderizza i piatti nel DOM
     function renderMenuItems(items, category = 'all', searchQuery = '') {
+        console.log('Renderizzazione menu con', items.length, 'piatti');
         menuItemsContainer.innerHTML = '';
         
         // Filtra i piatti
@@ -102,6 +136,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 (item.description && item.description.toLowerCase().includes(query))
             );
         }
+        
+        console.log('Piatti filtrati:', filteredItems.length);
         
         // Ordina i piatti
         filteredItems.sort((a, b) => (a.order || 0) - (b.order || 0));
@@ -175,6 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const dishId = e.currentTarget.getAttribute('data-id');
+                console.log('Modifica piatto:', dishId);
                 editDish(dishId);
             });
         });
@@ -183,6 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const dishId = e.currentTarget.getAttribute('data-id');
+                console.log('Elimina piatto:', dishId);
                 deleteDish(dishId);
             });
         });
@@ -191,7 +229,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.status-toggle input').forEach(toggle => {
             toggle.addEventListener('change', (e) => {
                 const dishId = e.target.getAttribute('data-id');
-                toggleDishAvailability(dishId, e.target.checked);
+                const isAvailable = e.target.checked;
+                console.log('Cambia disponibilità piatto:', dishId, isAvailable);
+                toggleDishAvailability(dishId, isAvailable);
             });
         });
     }
@@ -203,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dishForm.reset();
         document.getElementById('dishIsAvailable').checked = true;
         document.getElementById('dishOrder').value = 0;
-        dishModal.style.display = 'block';
+        dishModal.style.display = 'flex';
     }
     
     // Modifica un piatto esistente
@@ -229,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Errore nel caricamento del piatto:', error);
-            showNotification('Errore nel caricamento del piatto', 'error');
+            showNotification(`Errore nel caricamento del piatto: ${error.message}`, 'error');
         } finally {
             showLoading(false);
         }
@@ -248,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadMenuItems(currentCategory, searchInput.value);
             } catch (error) {
                 console.error('Errore durante l\'eliminazione del piatto:', error);
-                showNotification(error.message || 'Errore durante l\'eliminazione del piatto', 'error');
+                showNotification(`Errore durante l\'eliminazione: ${error.message}`, 'error');
             } finally {
                 showLoading(false);
             }
@@ -269,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function() {
             loadMenuItems(currentCategory, searchInput.value);
         } catch (error) {
             console.error('Errore durante l\'aggiornamento del piatto:', error);
-            showNotification(error.message || 'Errore durante l\'aggiornamento del piatto', 'error');
+            showNotification(`Errore durante l'aggiornamento: ${error.message}`, 'error');
         } finally {
             showLoading(false);
         }
@@ -277,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Mostra una notifica
     function showNotification(message, type = 'info') {
+        console.log('Notifica:', type, message);
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.style.cssText = `
@@ -360,6 +401,8 @@ document.addEventListener('DOMContentLoaded', function() {
             order: parseInt(document.getElementById('dishOrder').value) || 0
         };
         
+        console.log('Salvataggio piatto:', dishData);
+        
         try {
             showLoading(true);
             
@@ -388,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Errore durante il salvataggio del piatto:', error);
-            showNotification(error.message || 'Si è verificato un errore durante il salvataggio', 'error');
+            showNotification(`Errore durante il salvataggio: ${error.message}`, 'error');
         } finally {
             showLoading(false);
         }
@@ -399,6 +442,7 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput.addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
+            console.log('Ricerca:', e.target.value);
             loadMenuItems(currentCategory, e.target.value);
         }, 300);
     });
@@ -409,10 +453,12 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('.category-tab.active').classList.remove('active');
             tab.classList.add('active');
             currentCategory = tab.getAttribute('data-category');
+            console.log('Categoria selezionata:', currentCategory);
             loadMenuItems(currentCategory, searchInput.value);
         });
     });
     
     // Carica il menu iniziale
+    console.log('Caricamento menu iniziale...');
     loadMenuItems();
 });

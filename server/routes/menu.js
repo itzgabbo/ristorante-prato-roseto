@@ -23,14 +23,18 @@ router.get('/', async (req, res) => {
             query.isAvailable = true;
         }
         
-        // Ricerca testuale
-        if (search) {
-            query.$text = { $search: search };
-        }
-        
         // Esegui la query
-        const menuItems = await MenuItem.find(query)
+        let menuItems = await MenuItem.find(query)
             .sort({ order: 1, name: 1 });
+        
+        // Filtra per ricerca in memoria (per evitare problemi con l'indice $text)
+        if (search) {
+            const searchLower = search.toLowerCase();
+            menuItems = menuItems.filter(item => 
+                item.name.toLowerCase().includes(searchLower) || 
+                (item.description && item.description.toLowerCase().includes(searchLower))
+            );
+        }
             
         res.status(200).json({
             success: true,
@@ -41,7 +45,8 @@ router.get('/', async (req, res) => {
         console.error(err);
         res.status(500).json({
             success: false,
-            message: 'Errore del server durante il recupero del menu'
+            message: 'Errore del server durante il recupero del menu',
+            error: err.message
         });
     }
 });

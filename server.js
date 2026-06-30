@@ -23,12 +23,14 @@ if (envResult.error && process.env.NODE_ENV !== 'production') {
 
 const connectDB = require('./server/config/db');
 const createDefaultAdmin = require('./server/utils/seedAdmin');
+const seedMenuAuto = require('./server/utils/seedMenuAuto');
 const { protect } = require('./server/middleware/auth');
 
 connectDB().then(async () => {
   if (process.env.SEED_ADMIN !== 'false') {
     await createDefaultAdmin();
   }
+  await seedMenuAuto();
 });
 
 const app = express();
