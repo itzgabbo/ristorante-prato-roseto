@@ -60,20 +60,27 @@ header {
     font-size: 0.9rem;
     opacity: 0.9;
     font-style: italic;
+    color: white;
 }
 
 /* Stili per nav ul (come in index.html) */
 nav ul {
     display: flex;
-    list-style: none;
+    list-style: none !important;
     gap: 20px;
     margin: 0;
     padding: 0;
 }
 
-nav a {
-    color: white;
-    text-decoration: none;
+nav ul li {
+    list-style: none !important;
+}
+
+nav a,
+nav a:link,
+nav a:visited {
+    color: white !important;
+    text-decoration: none !important;
     font-weight: 600;
     font-family: 'Open Sans', sans-serif;
     font-size: 1rem;
