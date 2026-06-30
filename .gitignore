@@ -1,4 +1,5 @@
 node_modules/
+.env
 config/config.env
 backups/
 uploads/
