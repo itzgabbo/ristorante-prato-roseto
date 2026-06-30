@@ -248,15 +248,6 @@
         <div class="menu-header">
             <h1 class="menu-title">Il Nostro Menu</h1>
             <p class="menu-subtitle">Scopri i sapori autentici della tradizione italiana, preparati con ingredienti freschi e di qualità</p>
-            <!-- QR Code per il menu -->
-            <div class="qrcode-container" style="margin-top: 2rem;">
-                <img 
-                    src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ristorante-prato-roseto.onrender.com/menu.html" 
-                    alt="QR Code Menu" 
-                    style="border: 5px solid #E1A74A; border-radius: 10px;"
-                />
-                <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Inquadra per accedere al menu</p>
-            </div>
         </div>
 
         <!-- Pulsanti delle categorie -->
@@ -324,5 +315,15 @@
             });
         });
     </script>
+    <!-- QR Code in fondo alla pagina -->
+    <div class="menu-container" style="padding-top: 1rem; padding-bottom: 3rem; text-align: center;">
+        <div class="qrcode-container">
+            <img 
+                src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://ristorante-prato-roseto.onrender.com/menu.html" 
+                alt="QR Code Menu" 
+            />
+            <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">Inquadra per accedere al menu</p>
+        </div>
+    </div>
 </body>
 </html>
