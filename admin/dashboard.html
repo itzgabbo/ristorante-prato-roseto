@@ -333,6 +333,16 @@
                     </div>
                     
                     <div class="form-group">
+                        <label>Immagine del piatto</label>
+                        <div class="image-upload" id="imageUpload" style="border: 2px dashed #ccc; padding: 2rem; text-align: center; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                            <i class="fas fa-cloud-upload-alt fa-2x" style="color: #ccc;"></i>
+                            <p style="margin-top: 0.5rem; color: #666;">Trascina un'immagine qui o clicca per selezionare</p>
+                            <img id="imagePreview" class="preview-image" style="max-width: 200px; margin-top: 1rem; display: none;" alt="Anteprima immagine">
+                            <input type="file" id="dishImage" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
                         <label>
                             <input type="checkbox" id="dishIsAvailable" checked>
                             Piatto disponibile

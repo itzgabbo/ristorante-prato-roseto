@@ -1,7 +1,6 @@
 node_modules/
-.env
 config/config.env
+backups/
+uploads/
 .DS_Store
 Thumbs.db
-*.log
-npm-debug.log*

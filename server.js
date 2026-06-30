@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -9,6 +10,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
+const multer = require('multer');
+const compression = require('compression');
 
 const envPath = path.join(__dirname, 'config', 'config.env');
 const envResult = dotenv.config({ path: envPath });
@@ -37,6 +40,39 @@ const app = express();
 
 const menuRoutes = require('./server/routes/menu');
 const authRoutes = require('./server/routes/auth');
+const { createBackup, restoreBackup, listBackups } = require('./server/utils/backup');
+
+// Configurazione multer per upload immagini
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, uploadsDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'piatto-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Max 5MB
+    fileFilter: function (req, file, cb) {
+        const filetypes = /jpeg|jpg|png|gif|webp/;
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = filetypes.test(file.mimetype);
+        
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Sono ammessi solo file immagine (JPEG, JPG, PNG, GIF, WEBP)!'));
+        }
+    }
+});
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -63,11 +99,42 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(mongoSanitize());
 app.use(xss());
 app.use(hpp());
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), {
+    maxAge: process.env.NODE_ENV === 'production' ? '1d' : 0
+}));
+app.use('/uploads', express.static(uploadsDir, {
+    maxAge: process.env.NODE_ENV === 'production' ? '7d' : 0
+}));
+
+// Rotta per upload immagine piatto
+app.post('/api/upload-image', protect, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'Nessun file caricato!'
+            });
+        }
+        
+        res.status(200).json({
+            success: true,
+            data: {
+                imageUrl: `/uploads/${req.file.filename}`
+            }
+        });
+    } catch (error) {
+        console.error('Errore durante l\'upload immagine:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Errore durante l\'upload dell\'immagine!'
+        });
+    }
+});
 
 const PORT = process.env.PORT || 3000;
 
@@ -98,6 +165,28 @@ app.get('/menu.html', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
+
+// Rotte per il backup
+app.get('/api/backup/create', protect, async (req, res) => {
+    try {
+        const backupPath = await createBackup();
+        const fileName = path.basename(backupPath);
+        res.download(backupPath, fileName, (err) => {
+            if (err) console.error('Errore durante il download:', err);
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Errore durante la creazione del backup!' });
+    }
+});
+
+app.get('/api/backup/list', protect, (req, res) => {
+    try {
+        const backups = listBackups();
+        res.json({ success: true, data: backups });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Errore durante il recupero dei backup!' });
+    }
+});
 
 app.get('/admin/dashboard.html', protect, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'dashboard.html'));

@@ -67,10 +67,59 @@ document.addEventListener('DOMContentLoaded', function() {
     const dishForm = document.getElementById('dishForm');
     const searchInput = document.getElementById('searchMenu');
     const categoryTabs = document.querySelectorAll('.category-tab');
+    const imageUpload = document.getElementById('imageUpload');
+    const dishImage = document.getElementById('dishImage');
+    const imagePreview = document.getElementById('imagePreview');
     
     let currentDishId = null;
     let currentCategory = 'all';
     let allMenuItems = [];
+    let currentImageUrl = null;
+    
+    // Gestione upload immagine
+    imageUpload.addEventListener('click', () => dishImage.click());
+    
+    dishImage.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Anteprima
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                imagePreview.src = event.target.result;
+                imagePreview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+            
+            // Upload al server
+            try {
+                showLoading(true);
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                const token = localStorage.getItem('adminToken');
+                const response = await fetch('/api/upload-image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    currentImageUrl = data.data.imageUrl;
+                    console.log('Immagine caricata:', currentImageUrl);
+                } else {
+                    showNotification('Errore durante l\'upload dell\'immagine: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Errore upload immagine:', error);
+                showNotification('Errore durante l\'upload dell\'immagine!', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+    });
 
     // Carica i piatti dal server
     async function loadMenuItems(category = 'all', searchQuery = '') {
@@ -239,10 +288,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Aggiungi un nuovo piatto
     function addDish() {
         currentDishId = null;
+        currentImageUrl = null;
         document.getElementById('modalTitle').textContent = 'Aggiungi Nuovo Piatto';
         dishForm.reset();
         document.getElementById('dishIsAvailable').checked = true;
         document.getElementById('dishOrder').value = 0;
+        imagePreview.style.display = 'none';
+        imagePreview.src = '';
         dishModal.style.display = 'flex';
     }
     
@@ -255,6 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (dish) {
                 currentDishId = id;
+                currentImageUrl = dish.image || null;
                 document.getElementById('modalTitle').textContent = 'Modifica Piatto';
                 
                 // Compila il form con i dati del piatto
@@ -264,6 +317,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('dishDescription').value = dish.description || '';
                 document.getElementById('dishIsAvailable').checked = dish.isAvailable !== false;
                 document.getElementById('dishOrder').value = dish.order || 0;
+                
+                // Mostra anteprima immagine
+                if (dish.image) {
+                    imagePreview.src = dish.image;
+                    imagePreview.style.display = 'block';
+                } else {
+                    imagePreview.style.display = 'none';
+                    imagePreview.src = '';
+                }
                 
                 dishModal.style.display = 'block';
             }
@@ -400,6 +462,10 @@ document.addEventListener('DOMContentLoaded', function() {
             isAvailable: document.getElementById('dishIsAvailable').checked,
             order: parseInt(document.getElementById('dishOrder').value) || 0
         };
+        
+        if (currentImageUrl) {
+            dishData.image = currentImageUrl;
+        }
         
         console.log('Salvataggio piatto:', dishData);
         
