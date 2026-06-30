@@ -63,7 +63,29 @@ header {
     color: white;
 }
 
-/* Stili per nav ul (come in index.html) */
+/* Hamburger menu button */
+.mobile-menu-btn {
+    display: none;
+    background: rgba(255,255,255,0.2);
+    border: 2px solid white;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    color: white;
+    font-size: 1.4rem;
+    transition: all 0.3s ease;
+    z-index: 1001;
+}
+
+.mobile-menu-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Navigazione desktop */
+nav {
+    transition: all 0.3s ease;
+}
+
 nav ul {
     display: flex;
     list-style: none !important;
@@ -119,17 +141,42 @@ nav a:hover {
         display: none;
     }
 
+    /* Show hamburger button */
+    .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Hide nav menu by default on mobile */
+    nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #E1A74A;
+        padding: 1rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        display: none;
+    }
+
+    nav.show {
+        display: block;
+    }
+
     nav ul {
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 6px;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     nav a,
     nav a:link,
     nav a:visited {
-        padding: 4px 8px;
-        font-size: 0.78rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        width: 100%;
+        text-align: center;
     }
 }
 
@@ -137,13 +184,6 @@ nav a:hover {
     .logo-section h1,
     .restaurant-name {
         font-size: 0.85rem;
-    }
-
-    nav a,
-    nav a:link,
-    nav a:visited {
-        padding: 3px 6px;
-        font-size: 0.7rem;
     }
 }
 
