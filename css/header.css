@@ -2,7 +2,7 @@
 header {
     background-color: #E1A74A;
     color: white;
-    padding: 1rem 0;
+    padding: 0.5rem 0;
     position: fixed;
     top: 0;
     left: 0;
@@ -15,7 +15,7 @@ header {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 12px;
 }
 
 .header-content {
@@ -27,16 +27,16 @@ header {
 .logo-section {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 .logo {
-    width: 50px;
-    height: 70px;
+    width: 38px;
+    height: 48px;
     border-radius: 8px;
     object-fit: cover;
-    border: 3px solid #F8F9FA;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: 2px solid #F8F9FA;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
     background-color: white;
     padding: 2px;
 }
@@ -49,15 +49,15 @@ header {
 .logo-section h1,
 .restaurant-name {
     font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
+    font-size: 1.1rem;
     font-weight: 700;
     margin: 0;
     color: white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .tagline {
-    font-size: 0.9rem;
+    font-size: 0.65rem;
     opacity: 0.9;
     font-style: italic;
     color: white;
@@ -67,7 +67,7 @@ header {
 nav ul {
     display: flex;
     list-style: none !important;
-    gap: 20px;
+    gap: 10px;
     margin: 0;
     padding: 0;
 }
@@ -83,9 +83,9 @@ nav a:visited {
     text-decoration: none !important;
     font-weight: 600;
     font-family: 'Open Sans', sans-serif;
-    font-size: 1rem;
-    padding: 8px 15px;
-    border-radius: 25px;
+    font-size: 0.85rem;
+    padding: 5px 10px;
+    border-radius: 20px;
     transition: all 0.3s ease;
 }
 
@@ -94,105 +94,56 @@ nav a:hover {
     transform: translateY(-2px);
 }
 
-.main-nav {
-    display: flex;
-    gap: 20px;
-}
-
-.nav-link {
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    padding: 8px 15px;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-    font-family: 'Open Sans', sans-serif;
-    font-size: 1rem;
-}
-
-.nav-link:hover, 
-.nav-link.active {
-    background-color: rgba(255, 255, 255, 0.2);
-}
-
-.mobile-menu-btn {
-    display: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: white;
-    background: none;
-    border: none;
-    padding: 5px 10px;
-}
-
 /* Stili per la versione mobile */
 @media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        gap: 0.75rem;
-        padding: 0.75rem;
+    header {
+        padding: 0.4rem 0;
     }
 
-    .logo-section {
+    .container {
+        padding: 0 8px;
+    }
+
+    .header-content {
         flex-direction: row;
+        justify-content: space-between;
         align-items: center;
-        justify-content: center;
-        text-align: center;
-        gap: 0.75rem;
     }
 
     .logo-section h1,
     .restaurant-name {
-        font-size: 1.2rem;
+        font-size: 0.95rem;
     }
 
     .tagline {
-        font-size: 0.75rem;
+        display: none;
     }
 
     nav ul {
         flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.5rem;
+        justify-content: flex-end;
+        gap: 6px;
     }
 
     nav a,
     nav a:link,
     nav a:visited {
-        padding: 0.5rem 0.75rem;
+        padding: 4px 8px;
+        font-size: 0.78rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-section h1,
+    .restaurant-name {
         font-size: 0.85rem;
     }
-    
-    .main-nav {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background-color: #E1A74A;
-        flex-direction: column;
-        padding: 1rem;
-        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-    }
-    
-    .main-nav.show {
-        display: flex;
-    }
-    
-    .nav-link {
-        padding: 12px 20px;
-        border-radius: 5px;
-        margin: 5px 0;
-        text-align: center;
-    }
-    
-    .mobile-menu-btn {
-        display: block;
-    }
-    
-    .logo {
-        width: 35px;
-        height: 50px;
+
+    nav a,
+    nav a:link,
+    nav a:visited {
+        padding: 3px 6px;
+        font-size: 0.7rem;
     }
 }
 
