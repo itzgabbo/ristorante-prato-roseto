@@ -21,45 +21,7 @@
             background-color: #faf8f5;
         }
 
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
 
-        .logo {
-            width: 50px;
-            height: 70px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 3px solid #DAA520;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            background-color: white;
-            padding: 2px;
-        }
-
-        .restaurant-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #DAA520;
-        }
-
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #DAA520;
-        }
 
         .menu-container {
             max-width: 1200px;
@@ -263,19 +225,21 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo-section">
-                    <img src="logo.png" alt="Prato Roseto Logo" class="logo">
-                    <h1 class="restaurant-name">Prato Roseto</h1>
+                    <img src="logo.png" alt="Ristorante Prato Roseto Logo" class="logo">
+                    <div>
+                        <div class="restaurant-name">Ristorante Prato Roseto</div>
+                        <div class="tagline">Cucina Italiana Autentica</div>
+                    </div>
                 </div>
-                <nav class="main-nav">
-                    <a href="index.html" class="nav-link">Home</a>
-                    <a href="menu.html" class="nav-link active">Menu</a>
-                    <a href="index.html#prenota" class="nav-link">Prenota</a>
-                    <a href="index.html#about" class="nav-link">Chi Siamo</a>
-                    <a href="index.html#contact" class="nav-link">Contatti</a>
+                <nav>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="menu.html" style="background-color: rgba(255, 255, 255, 0.2);">Menu</a></li>
+                        <li><a href="index.html#prenota">Prenota</a></li>
+                        <li><a href="index.html#about">Chi Siamo</a></li>
+                        <li><a href="index.html#contact">Contatti</a></li>
+                    </ul>
                 </nav>
-                <button class="mobile-menu-btn" aria-label="Menu">
-                    <i class="fas fa-bars"></i>
-                </button>
             </div>
         </div>
     </header>
@@ -293,7 +257,7 @@
             <button class="category-btn" data-category="primi">Primi Piatti</button>
             <button class="category-btn" data-category="secondi">Secondi Piatti</button>
             <button class="category-btn" data-category="contorni">Contorni</button>
-            <button class="category-btn" data-category="pizza">Pizze</button>
+            <button class="category-btn" data-category="pizze">Pizze</button>
             <button class="category-btn" data-category="dessert">Dessert</button>
             <button class="category-btn" data-category="bevande">Bevande</button>
             <button class="category-btn" data-category="vini">Vini</button>
