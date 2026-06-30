@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let currentDishId = null;
     let currentCategory = 'all';
-    let menuItems = [];
+    let allMenuItems = [];
 
     // Carica i piatti dal server
     async function loadMenuItems(category = 'all', searchQuery = '') {
@@ -71,10 +71,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = `${API_BASE_URL}?${params.toString()}`;
             const data = await fetchData(url);
             
-            menuItems = data.data || [];
-            renderMenuItems(menuItems);
+            allMenuItems = data.data || [];
+            renderMenuItems(allMenuItems, category, searchQuery);
             
-            return menuItems;
+            return allMenuItems;
         } catch (error) {
             console.error('Errore nel caricamento del menu:', error);
             showNotification('Errore nel caricamento del menu', 'error');
@@ -85,10 +85,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Renderizza i piatti nel DOM
-    function renderMenuItems(items) {
+    function renderMenuItems(items, category = 'all', searchQuery = '') {
         menuItemsContainer.innerHTML = '';
         
-        if (items.length === 0) {
+        // Filtra i piatti
+        let filteredItems = [...items];
+        
+        if (category !== 'all') {
+            filteredItems = filteredItems.filter(item => item.category === category);
+        }
+        
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            filteredItems = filteredItems.filter(item => 
+                item.name.toLowerCase().includes(query) || 
+                (item.description && item.description.toLowerCase().includes(query))
+            );
+        }
+        
+        // Ordina i piatti
+        filteredItems.sort((a, b) => (a.order || 0) - (b.order || 0));
+        
+        if (filteredItems.length === 0) {
             menuItemsContainer.innerHTML = `
                 <div class="no-items">
                     <i class="fas fa-utensils"></i>
@@ -129,14 +147,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
                     <div class="menu-item-footer">
                         <label class="status-toggle">
-                            <input type="checkbox" ${item.isAvailable ? 'checked' : ''} data-id="${item.id}">
+                            <input type="checkbox" ${item.isAvailable ? 'checked' : ''} data-id="${item._id}">
                             <span class="slider"></span>
                         </label>
                         <div class="menu-item-actions">
-                            <button class="action-btn edit-btn" data-id="${item.id}" title="Modifica">
+                            <button class="action-btn edit-btn" data-id="${item._id}" title="Modifica">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="action-btn delete-btn" data-id="${item.id}" title="Elimina">
+                            <button class="action-btn delete-btn" data-id="${item._id}" title="Elimina">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -156,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Pulsante modifica
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const dishId = parseInt(e.currentTarget.getAttribute('data-id'));
+                const dishId = e.currentTarget.getAttribute('data-id');
                 editDish(dishId);
             });
         });
@@ -164,7 +182,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Pulsante elimina
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const dishId = parseInt(e.currentTarget.getAttribute('data-id'));
+                const dishId = e.currentTarget.getAttribute('data-id');
                 deleteDish(dishId);
             });
         });
@@ -172,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Toggle disponibilità
         document.querySelectorAll('.status-toggle input').forEach(toggle => {
             toggle.addEventListener('change', (e) => {
-                const dishId = parseInt(e.target.getAttribute('data-id'));
+                const dishId = e.target.getAttribute('data-id');
                 toggleDishAvailability(dishId, e.target.checked);
             });
         });
@@ -183,11 +201,9 @@ document.addEventListener('DOMContentLoaded', function() {
         currentDishId = null;
         document.getElementById('modalTitle').textContent = 'Aggiungi Nuovo Piatto';
         dishForm.reset();
-        dishModal.style.display = 'block';
-        
-        // Imposta i valori di default
         document.getElementById('dishIsAvailable').checked = true;
         document.getElementById('dishOrder').value = 0;
+        dishModal.style.display = 'block';
     }
     
     // Modifica un piatto esistente
@@ -263,9 +279,26 @@ document.addEventListener('DOMContentLoaded', function() {
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+            ${type === 'success' ? 'background: #4caf50;' : ''}
+            ${type === 'error' ? 'background: #f44336;' : ''}
+            ${type === 'info' ? 'background: #2196f3;' : ''}
+        `;
         notification.innerHTML = `
             <span>${message}</span>
-            <button class="close-notification">&times;</button>
+            <button class="close-notification" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;">&times;</button>
         `;
         
         // Rimuovi notifiche precedenti
@@ -274,16 +307,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.body.appendChild(notification);
         
-        // Mostra con animazione
-        setTimeout(() => {
-            notification.style.opacity = '1';
-            notification.style.transform = 'translateY(0)';
-        }, 10);
-        
         // Rimuovi la notifica dopo 5 secondi
         const removeNotification = () => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateY(-20px)';
+            notification.style.animation = 'slideOut 0.3s ease';
             setTimeout(() => {
                 notification.remove();
             }, 300);
@@ -325,14 +351,13 @@ document.addEventListener('DOMContentLoaded', function() {
     dishForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = new FormData(dishForm);
         const dishData = {
-            name: formData.get('name'),
-            category: formData.get('category'),
-            price: parseFloat(formData.get('price')),
-            description: formData.get('description'),
+            name: document.getElementById('dishName').value,
+            category: document.getElementById('dishCategory').value,
+            price: parseFloat(document.getElementById('dishPrice').value),
+            description: document.getElementById('dishDescription').value,
             isAvailable: document.getElementById('dishIsAvailable').checked,
-            order: parseInt(formData.get('order')) || 0
+            order: parseInt(document.getElementById('dishOrder').value) || 0
         };
         
         try {
@@ -370,8 +395,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Gestione ricerca
+    let searchTimeout;
     searchInput.addEventListener('input', (e) => {
-        loadMenuItems(currentCategory, e.target.value);
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            loadMenuItems(currentCategory, e.target.value);
+        }, 300);
     });
     
     // Gestione tab categorie

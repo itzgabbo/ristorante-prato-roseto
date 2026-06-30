@@ -26,8 +26,11 @@ const menuItemSchema = new mongoose.Schema({
                 'primi',
                 'secondi',
                 'contorni',
+                'pizze',
                 'dessert',
-                'bevande'
+                'bevande',
+                'vini',
+                'birre'
             ],
             message: 'Seleziona una categoria valida'
         }

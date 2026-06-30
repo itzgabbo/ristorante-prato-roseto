@@ -269,8 +269,11 @@
                             <div class="category-tab" data-category="primi">Primi Piatti</div>
                             <div class="category-tab" data-category="secondi">Secondi</div>
                             <div class="category-tab" data-category="contorni">Contorni</div>
+                            <div class="category-tab" data-category="pizze">Pizze</div>
                             <div class="category-tab" data-category="dessert">Dessert</div>
                             <div class="category-tab" data-category="bevande">Bevande</div>
+                            <div class="category-tab" data-category="vini">Vini</div>
+                            <div class="category-tab" data-category="birre">Birre</div>
                         </div>
                         
                         <div class="menu-items" id="menuItems">
@@ -293,47 +296,47 @@
                 <form id="dishForm">
                     <div class="form-group">
                         <label for="dishName">Nome Piatto *</label>
-                        <input type="text" id="dishName" class="form-control" required>
+                        <input type="text" id="dishName" name="name" class="form-control" required>
                     </div>
                     
                     <div class="form-group">
                         <label for="dishCategory">Categoria *</label>
-                        <select id="dishCategory" class="form-control" required>
+                        <select id="dishCategory" name="category" class="form-control" required>
                             <option value="">Seleziona una categoria</option>
                             <option value="antipasti">Antipasti</option>
                             <option value="primi">Primi Piatti</option>
                             <option value="secondi">Secondi</option>
                             <option value="contorni">Contorni</option>
+                            <option value="pizze">Pizze</option>
                             <option value="dessert">Dessert</option>
                             <option value="bevande">Bevande</option>
+                            <option value="vini">Vini</option>
+                            <option value="birre">Birre</option>
                         </select>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group" style="flex: 1;">
                             <label for="dishPrice">Prezzo (€) *</label>
-                            <input type="number" id="dishPrice" class="form-control" min="0" step="0.01" required>
+                            <input type="number" id="dishPrice" name="price" class="form-control" min="0" step="0.01" required>
                         </div>
                         
                         <div class="form-group" style="flex: 1;">
                             <label for="dishOrder">Ordinamento</label>
-                            <input type="number" id="dishOrder" class="form-control" min="0" value="0">
+                            <input type="number" id="dishOrder" name="order" class="form-control" min="0" value="0">
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="dishDescription">Descrizione</label>
-                        <textarea id="dishDescription" class="form-control" rows="3"></textarea>
+                        <textarea id="dishDescription" name="description" class="form-control" rows="3"></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label>Immagine del piatto</label>
-                        <div class="image-upload" id="imageUpload">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Trascina un'immagine qui o clicca per selezionare</p>
-                            <img id="imagePreview" class="preview-image" alt="Anteprima immagine">
-                            <input type="file" id="dishImage" accept="image/*" style="display: none;">
-                        </div>
+                        <label>
+                            <input type="checkbox" id="dishIsAvailable" checked>
+                            Piatto disponibile
+                        </label>
                     </div>
                     
                     <div class="form-actions">
@@ -345,296 +348,16 @@
         </div>
     </div>
 
+    <!-- Indicatore di caricamento -->
+    <div id="loadingIndicator" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 2rem; border-radius: 8px;">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p style="margin-top: 1rem;">Caricamento...</p>
+        </div>
+    </div>
+
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Verifica l'autenticazione
-            if (!Auth.isAuthenticated()) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Dati di esempio per il menu
-            let menuItems = [
-                {
-                    id: 1,
-                    name: 'Bruschetta al Pomodoro',
-                    category: 'antipasti',
-                    price: 5.50,
-                    description: 'Pane tostato con pomodoro fresco, aglio e basilico',
-                    image: '../piatto.jpg',
-                    isAvailable: true,
-                    order: 1
-                },
-                {
-                    id: 2,
-                    name: 'Spaghetti Carbonara',
-                    category: 'primi',
-                    price: 12.00,
-                    description: 'Spaghetti con uova, guanciale, pecorino e pepe nero',
-                    image: '../piatto.jpg',
-                    isAvailable: true,
-                    order: 1
-                },
-                {
-                    id: 3,
-                    name: 'Tiramisù',
-                    category: 'dessert',
-                    price: 6.50,
-                    description: 'Dolce al cucchiaio con savoiardi, caffè, mascarpone e cacao',
-                    image: '../piatto.jpg',
-                    isAvailable: true,
-                    order: 1
-                }
-            ];
-
-            // Elementi del DOM
-            const menuItemsContainer = document.getElementById('menuItems');
-            const addDishBtn = document.getElementById('addDishBtn');
-            const dishModal = document.getElementById('dishModal');
-            const closeModal = document.getElementById('closeModal');
-            const cancelDish = document.getElementById('cancelDish');
-            const dishForm = document.getElementById('dishForm');
-            const imageUpload = document.getElementById('imageUpload');
-            const dishImage = document.getElementById('dishImage');
-            const imagePreview = document.getElementById('imagePreview');
-            const searchInput = document.getElementById('searchMenu');
-            const categoryTabs = document.querySelectorAll('.category-tab');
-            
-            let currentDishId = null;
-            let currentCategory = 'all';
-
-            // Carica i piatti nel menu
-            function loadMenuItems(category = 'all', searchQuery = '') {
-                menuItemsContainer.innerHTML = '';
-                
-                let filteredItems = [...menuItems];
-                
-                // Filtra per categoria
-                if (category !== 'all') {
-                    filteredItems = filteredItems.filter(item => item.category === category);
-                }
-                
-                // Filtra per ricerca
-                if (searchQuery) {
-                    const query = searchQuery.toLowerCase();
-                    filteredItems = filteredItems.filter(item => 
-                        item.name.toLowerCase().includes(query) || 
-                        item.description.toLowerCase().includes(query)
-                    );
-                }
-                
-                // Ordina i piatti
-                filteredItems.sort((a, b) => a.order - b.order);
-                
-                if (filteredItems.length === 0) {
-                    menuItemsContainer.innerHTML = `
-                        <div class="no-items">
-                            <i class="fas fa-utensils"></i>
-                            <p>Nessun piatto trovato</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Aggiungi i piatti al DOM
-                filteredItems.forEach(item => {
-                    const dishElement = document.createElement('div');
-                    dishElement.className = 'menu-item-card';
-                    dishElement.innerHTML = `
-                        <div class="menu-item-image" style="background-image: url('${item.image}')">
-                            ${!item.isAvailable ? '<span class="menu-item-badge">Non disponibile</span>' : ''}
-                        </div>
-                        <div class="menu-item-details">
-                            <div class="menu-item-header">
-                                <h3 class="menu-item-name">${item.name}</h3>
-                                <span class="menu-item-price">€${item.price.toFixed(2)}</span>
-                            </div>
-                            <p class="menu-item-description">${item.description}</p>
-                            <div class="menu-item-footer">
-                                <label class="status-toggle">
-                                    <input type="checkbox" ${item.isAvailable ? 'checked' : ''} data-id="${item.id}">
-                                    <span class="slider"></span>
-                                </label>
-                                <div class="menu-item-actions">
-                                    <button class="action-btn edit-btn" data-id="${item.id}" title="Modifica">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="action-btn delete-btn" data-id="${item.id}" title="Elimina">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    menuItemsContainer.appendChild(dishElement);
-                });
-                
-                // Aggiungi gestori di eventi ai pulsanti
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const dishId = parseInt(e.currentTarget.getAttribute('data-id'));
-                        editDish(dishId);
-                    });
-                });
-                
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const dishId = parseInt(e.currentTarget.getAttribute('data-id'));
-                        deleteDish(dishId);
-                    });
-                });
-                
-                document.querySelectorAll('.status-toggle input').forEach(toggle => {
-                    toggle.addEventListener('change', (e) => {
-                        const dishId = parseInt(e.target.getAttribute('data-id'));
-                        toggleDishAvailability(dishId, e.target.checked);
-                    });
-                });
-            }
-            
-            // Aggiungi un nuovo piatto
-            function addDish() {
-                currentDishId = null;
-                dishForm.reset();
-                imagePreview.style.display = 'none';
-                document.getElementById('modalTitle').textContent = 'Aggiungi Nuovo Piatto';
-                dishModal.style.display = 'flex';
-            }
-            
-            // Modifica un piatto esistente
-            function editDish(id) {
-                const dish = menuItems.find(item => item.id === id);
-                if (!dish) return;
-                
-                currentDishId = id;
-                document.getElementById('modalTitle').textContent = 'Modifica Piatto';
-                document.getElementById('dishName').value = dish.name;
-                document.getElementById('dishCategory').value = dish.category;
-                document.getElementById('dishPrice').value = dish.price;
-                document.getElementById('dishDescription').value = dish.description || '';
-                document.getElementById('dishOrder').value = dish.order || 0;
-                
-                if (dish.image) {
-                    imagePreview.src = dish.image;
-                    imagePreview.style.display = 'block';
-                } else {
-                    imagePreview.style.display = 'none';
-                }
-                
-                dishModal.style.display = 'flex';
-            }
-            
-            // Elimina un piatto
-            function deleteDish(id) {
-                if (confirm('Sei sicuro di voler eliminare questo piatto?')) {
-                    menuItems = menuItems.filter(item => item.id !== id);
-                    loadMenuItems(currentCategory, searchInput.value);
-                    // Qui andrebbe una chiamata API per salvare le modifiche
-                }
-            }
-            
-            // Attiva/disattiva la disponibilità di un piatto
-            function toggleDishAvailability(id, isAvailable) {
-                const dish = menuItems.find(item => item.id === id);
-                if (dish) {
-                    dish.isAvailable = isAvailable;
-                    // Qui andrebbe una chiamata API per aggiornare lo stato
-                }
-            }
-            
-            // Gestione eventi
-            addDishBtn.addEventListener('click', addDish);
-            
-            closeModal.addEventListener('click', () => {
-                dishModal.style.display = 'none';
-            });
-            
-            cancelDish.addEventListener('click', () => {
-                dishModal.style.display = 'none';
-            });
-            
-            // Chiudi il modale cliccando fuori dal contenuto
-            window.addEventListener('click', (e) => {
-                if (e.target === dishModal) {
-                    dishModal.style.display = 'none';
-                }
-            });
-            
-            // Gestione upload immagine
-            imageUpload.addEventListener('click', () => {
-                dishImage.click();
-            });
-            
-            dishImage.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        imagePreview.src = event.target.result;
-                        imagePreview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-            
-            // Gestione invio form
-            dishForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                
-                const dishData = {
-                    id: currentDishId || Date.now(),
-                    name: document.getElementById('dishName').value,
-                    category: document.getElementById('dishCategory').value,
-                    price: parseFloat(document.getElementById('dishPrice').value),
-                    description: document.getElementById('dishDescription').value,
-                    order: parseInt(document.getElementById('dishOrder').value) || 0,
-                    image: imagePreview.src || '../piatto.jpg',
-                    isAvailable: true
-                };
-                
-                if (currentDishId) {
-                    // Modifica piatto esistente
-                    const index = menuItems.findIndex(item => item.id === currentDishId);
-                    if (index !== -1) {
-                        menuItems[index] = { ...menuItems[index], ...dishData };
-                    }
-                } else {
-                    // Aggiungi nuovo piatto
-                    menuItems.push(dishData);
-                }
-                
-                // Ricarica il menu
-                loadMenuItems(currentCategory, searchInput.value);
-                
-                // Chiudi il modale
-                dishModal.style.display = 'none';
-                
-                // Qui andrebbe una chiamata API per salvare le modifiche
-                console.log('Piatto salvato:', dishData);
-            });
-            
-            // Gestione ricerca
-            searchInput.addEventListener('input', (e) => {
-                loadMenuItems(currentCategory, e.target.value);
-            });
-            
-            // Gestione tab categorie
-            categoryTabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelector('.category-tab.active').classList.remove('active');
-                    tab.classList.add('active');
-                    currentCategory = tab.getAttribute('data-category');
-                    loadMenuItems(currentCategory, searchInput.value);
-                });
-            });
-            
-            // Carica il menu iniziale
-            loadMenuItems();
-        });
-    </script>
     
     <style>
         /* Stili per il modale */

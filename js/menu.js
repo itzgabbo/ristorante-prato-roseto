@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const menuContainer = document.getElementById('menu-sections');
     
     // Crea le sezioni del menu dinamicamente
-    const categories = ['antipasti', 'primi', 'secondi', 'contorni', 'pizza', 'dessert', 'bevande', 'vini', 'birre'];
+    const categories = ['antipasti', 'primi', 'secondi', 'contorni', 'pizze', 'dessert', 'bevande', 'vini', 'birre'];
     
     // Svuota il contenitore
     menuContainer.innerHTML = '';
@@ -31,16 +31,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         console.log('Caricamento dati del menu...');
         
-        // Carica i dati del menu
-        const response = await fetch('data/menu.json');
+        // Carica i dati del menu dalle API
+        const response = await fetch('/api/menu?available=true');
         if (!response.ok) {
             throw new Error('Impossibile caricare il menu');
         }
         
         const data = await response.json();
-        const menuItems = data.dishes || [];
+        const menuItems = data.data || [];
         
-        console.log('Dati del menu caricati con successo');
+        console.log('Dati del menu caricati con successo:', menuItems.length, 'piatti');
         
         if (menuItems.length === 0) {
             showNoItemsMessage();
@@ -219,7 +219,7 @@ function showSampleData() {
         { name: 'Spaghetti Carbonara', description: 'Pasta con uova, guanciale, pecorino e pepe nero', price: 12.00, category: 'primi' },
         { name: 'Cotoletta alla Milanese', description: 'Cotoletta di vitello impanata con patate al forno', price: 15.00, category: 'secondi' },
         { name: 'Insalata mista', description: 'Misto di verdure fresche di stagione', price: 4.50, category: 'contorni' },
-        { name: 'Margherita', description: 'Pomodoro, mozzarella, basilico fresco', price: 8.00, category: 'pizza' },
+        { name: 'Margherita', description: 'Pomodoro, mozzarella, basilico fresco', price: 8.00, category: 'pizze' },
         { name: 'Tiramisù', description: 'Dolce al cucchiaio con savoiardi, caffè e mascarpone', price: 6.00, category: 'dessert' },
         { name: 'Acqua naturale', description: 'Bottiglia da 1L', price: 2.00, category: 'bevande' },
         { name: 'Chianti Classico', description: 'Vino rosso toscano, bicchiere', price: 5.00, category: 'vini' },
@@ -251,7 +251,7 @@ function showSampleData() {
     const style = document.createElement('style');
     style.textContent = `
         .info-message {
-            background-color: #e3f2fd;
+            background: #e3f2fd;
             color: #0d47a1;
             padding: 1rem;
             border-radius: 4px;
