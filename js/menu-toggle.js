@@ -48,33 +48,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- SMART HEADER (HIDE ON SCROLL DOWN, SHOW ON SCROLL UP) ---
     if (header) {
         let lastScrollY = window.scrollY;
-        const scrollThreshold = 10; // Minimo scroll in px per triggerare l'evento
         
-        const handleScroll = () => {
+        window.addEventListener('scroll', function() {
             const currentScrollY = window.scrollY;
             
-            // Nascondi l'header se scrolliamo verso il basso
-            if (currentScrollY > lastScrollY && currentScrollY > scrollThreshold) {
-                header.classList.add('hidden');
-                // Se il menu mobile è aperto, chiudiamolo
-                if (mainNav && mainNav.classList.contains('show')) {
-                    mainNav.classList.remove('show');
-                    if (mobileMenuBtn) {
-                        const icon = mobileMenuBtn.querySelector('i');
-                        icon.classList.remove('fa-times');
-                        icon.classList.add('fa-bars');
-                    }
-                }
+            // Se scroll verso il basso e oltre i 50px: nascondi header
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+                header.classList.add('header-hidden');
             } 
-            // Mostra l'header se scrolliamo verso l'alto
+            // Se scroll verso l'alto: mostra header
             else if (currentScrollY < lastScrollY) {
-                header.classList.remove('hidden');
+                header.classList.remove('header-hidden');
             }
             
+            // Aggiorna sempre lastScrollY per il prossimo ciclo
             lastScrollY = currentScrollY;
-        };
-        
-        // Aggiungiamo l'event listener per lo scroll
-        window.addEventListener('scroll', handleScroll, { passive: true });
+        }, { passive: true });
     }
 });
