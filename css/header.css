@@ -138,45 +138,45 @@ nav a:hover {
     }
 
     .tagline {
-        display: none;
+        display: none !important;
     }
 
     /* Show hamburger button */
     .mobile-menu-btn {
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
     }
 
     /* Hide nav menu by default on mobile */
     nav {
-        position: absolute;
+        position: absolute !important;
         top: 100%;
         left: 0;
         right: 0;
-        background-color: #E1A74A;
-        padding: 1rem;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        display: none;
+        background-color: #E1A74A !important;
+        padding: 1rem !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+        display: none !important;
     }
 
     nav.show {
-        display: block;
+        display: block !important;
     }
 
     nav ul {
-        flex-direction: column;
-        align-items: center;
-        gap: 0.75rem;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
     }
 
     nav a,
     nav a:link,
     nav a:visited {
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        width: 100%;
-        text-align: center;
+        padding: 0.75rem 1.5rem !important;
+        font-size: 1rem !important;
+        width: 100% !important;
+        text-align: center !important;
     }
 }
 
