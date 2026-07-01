@@ -170,6 +170,7 @@ function renderMenuSection(sectionElement, items) {
     // Genera l'HTML per ogni piatto
     const itemsHtml = items.map(item => `
         <div class="menu-item" data-category="${item.category}">
+            ${item.image ? `<div class="item-image" style="background-image: url('${item.image}');"></div>` : ''}
             <div class="item-info">
                 <h4>${escapeHtml(item.name)}</h4>
                 ${item.description ? `<p class="item-description">${escapeHtml(item.description)}</p>` : ''}

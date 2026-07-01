@@ -134,15 +134,45 @@ document.addEventListener('DOMContentLoaded', function() {
             const tab = document.createElement('div');
             tab.className = 'category-tab';
             if (cat.name === currentCategory) tab.classList.add('active');
-            tab.setAttribute('data-category', cat.name);
-            tab.textContent = cat.displayName;
-            tab.addEventListener('click', () => {
+            tab.style.display = 'flex';
+            tab.style.alignItems = 'center';
+            tab.style.gap = '0.5rem';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = cat.displayName;
+            nameSpan.addEventListener('click', () => {
                 document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 currentCategory = cat.name;
                 console.log('Categoria selezionata:', currentCategory);
                 loadMenuItems(currentCategory, searchInput.value);
             });
+            tab.appendChild(nameSpan);
+
+            const editBtn = document.createElement('button');
+            editBtn.innerHTML = '<i class="fas fa-edit"></i>';
+            editBtn.style.background = 'none';
+            editBtn.style.border = 'none';
+            editBtn.style.color = 'var(--secondary-color)';
+            editBtn.style.cursor = 'pointer';
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                editCategory(cat);
+            });
+            tab.appendChild(editBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.style.background = 'none';
+            deleteBtn.style.border = 'none';
+            deleteBtn.style.color = '#f44336';
+            deleteBtn.style.cursor = 'pointer';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteCategory(cat._id, cat.name);
+            });
+            tab.appendChild(deleteBtn);
+
             categoryTabs.appendChild(tab);
         });
     }
@@ -398,6 +428,36 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryForm.reset();
         document.getElementById('categoryOrder').value = allCategories.length + 1;
         categoryModal.style.display = 'flex';
+    }
+
+    function editCategory(cat) {
+        currentCategoryId = cat._id;
+        document.getElementById('categoryModalTitle').textContent = 'Modifica Categoria';
+        document.getElementById('categoryName').value = cat.displayName;
+        document.getElementById('categoryOrder').value = cat.order;
+        categoryModal.style.display = 'flex';
+    }
+
+    async function deleteCategory(id, name) {
+        if (confirm(`Sei sicuro di voler eliminare la categoria "${name}"? I piatti in questa categoria non verranno eliminati, ma dovrai assegnarli a un'altra categoria.`)) {
+            try {
+                showLoading(true);
+                await fetchData(`${CATEGORIES_API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                showNotification('Categoria eliminata con successo', 'success');
+                await loadCategories();
+                if (currentCategory === name && allCategories.length > 0) {
+                    currentCategory = allCategories[0].name;
+                }
+                await loadMenuItems(currentCategory, searchInput.value);
+            } catch (error) {
+                console.error('Errore durante l\'eliminazione della categoria:', error);
+                showNotification(`Errore durante l'eliminazione: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
     }
 
     categoryForm.addEventListener('submit', async (e) => {
