@@ -12,6 +12,11 @@ header {
     transition: transform 0.3s ease, padding 0.3s ease;
 }
 
+/* Classe per nascondere l'header allo scroll down */
+header.hidden {
+    transform: translateY(-100%);
+}
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
