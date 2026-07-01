@@ -134,13 +134,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const tab = document.createElement('div');
             tab.className = 'category-tab';
             if (cat.name === currentCategory) tab.classList.add('active');
-            tab.style.display = 'flex';
-            tab.style.alignItems = 'center';
-            tab.style.gap = '0.5rem';
 
             const nameSpan = document.createElement('span');
             nameSpan.textContent = cat.displayName;
-            nameSpan.addEventListener('click', () => {
+            nameSpan.style.flex = '1';
+            nameSpan.style.cursor = 'pointer';
+            nameSpan.addEventListener('click', (e) => {
+                e.stopPropagation();
                 document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 currentCategory = cat.name;
@@ -155,6 +155,8 @@ document.addEventListener('DOMContentLoaded', function() {
             editBtn.style.border = 'none';
             editBtn.style.color = 'var(--secondary-color)';
             editBtn.style.cursor = 'pointer';
+            editBtn.style.padding = '0.25rem';
+            editBtn.style.fontSize = '0.9rem';
             editBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 editCategory(cat);
@@ -167,6 +169,8 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteBtn.style.border = 'none';
             deleteBtn.style.color = '#f44336';
             deleteBtn.style.cursor = 'pointer';
+            deleteBtn.style.padding = '0.25rem';
+            deleteBtn.style.fontSize = '0.9rem';
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 deleteCategory(cat._id, cat.name);
@@ -257,11 +261,22 @@ document.addEventListener('DOMContentLoaded', function() {
         filteredItems.forEach(item => {
             const dishElement = document.createElement('div');
             dishElement.className = 'menu-item-card';
-            dishElement.innerHTML = `
-                <div class="menu-item-image" style="background-image: url('${item.image || '../piatto.jpg'}')">
+            
+            let imageHtml = '';
+            let detailsClass = 'menu-item-details';
+            if (!item.image) {
+                detailsClass += ' menu-item-details-full';
+            }
+            
+            if (item.image) {
+                imageHtml = `<div class="menu-item-image" style="background-image: url('${item.image}')">
                     ${!item.isAvailable ? '<span class="menu-item-badge">Non disponibile</span>' : ''}
-                </div>
-                <div class="menu-item-details">
+                </div>`;
+            }
+            
+            dishElement.innerHTML = `
+                ${imageHtml}
+                <div class="${detailsClass}">
                     <div class="menu-item-header">
                         <h3 class="menu-item-name">${item.name}</h3>
                         <span class="menu-item-price">€${item.price.toFixed(2)}</span>
