@@ -20,20 +20,7 @@ const menuItemSchema = new mongoose.Schema({
     category: {
         type: String,
         required: [true, 'Seleziona una categoria per il piatto'],
-        enum: {
-            values: [
-                'antipasti',
-                'primi',
-                'secondi',
-                'contorni',
-                'pizze',
-                'dessert',
-                'bevande',
-                'vini',
-                'birre'
-            ],
-            message: 'Seleziona una categoria valida'
-        }
+        trim: true
     },
     image: {
         type: String,

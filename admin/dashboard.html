@@ -256,24 +256,20 @@
             <div class="content">
                 <div class="page-header">
                     <h1>Gestione Menu</h1>
-                    <button class="btn" id="addDishBtn">
-                        <i class="fas fa-plus"></i> Aggiungi Piatto
-                    </button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn" id="addCategoryBtn">
+                            <i class="fas fa-folder-plus"></i> Aggiungi Categoria
+                        </button>
+                        <button class="btn" id="addDishBtn">
+                            <i class="fas fa-plus"></i> Aggiungi Piatto
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="menu-container">
                     <div class="menu-categories">
-                        <div class="category-tabs">
-                            <div class="category-tab active" data-category="all">Tutti</div>
-                            <div class="category-tab" data-category="antipasti">Antipasti</div>
-                            <div class="category-tab" data-category="primi">Primi Piatti</div>
-                            <div class="category-tab" data-category="secondi">Secondi</div>
-                            <div class="category-tab" data-category="contorni">Contorni</div>
-                            <div class="category-tab" data-category="pizze">Pizze</div>
-                            <div class="category-tab" data-category="dessert">Dessert</div>
-                            <div class="category-tab" data-category="bevande">Bevande</div>
-                            <div class="category-tab" data-category="vini">Vini</div>
-                            <div class="category-tab" data-category="birre">Birre</div>
+                        <div class="category-tabs" id="categoryTabs">
+                            <!-- Categorie caricate dinamicamente -->
                         </div>
                         
                         <div class="menu-items" id="menuItems">
@@ -334,11 +330,16 @@
                     
                     <div class="form-group">
                         <label>Immagine del piatto</label>
-                        <div class="image-upload" id="imageUpload" style="border: 2px dashed #ccc; padding: 2rem; text-align: center; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
-                            <i class="fas fa-cloud-upload-alt fa-2x" style="color: #ccc;"></i>
-                            <p style="margin-top: 0.5rem; color: #666;">Trascina un'immagine qui o clicca per selezionare</p>
-                            <img id="imagePreview" class="preview-image" style="max-width: 200px; margin-top: 1rem; display: none;" alt="Anteprima immagine">
-                            <input type="file" id="dishImage" accept="image/*" style="display: none;">
+                        <div style="position: relative; display: inline-block;">
+                            <div class="image-upload" id="imageUpload" style="border: 2px dashed #ccc; padding: 2rem; text-align: center; cursor: pointer; border-radius: 8px; margin-bottom: 0.5rem;">
+                                <i class="fas fa-cloud-upload-alt fa-2x" style="color: #ccc;"></i>
+                                <p style="margin-top: 0.5rem; color: #666;">Trascina un'immagine qui o clicca per selezionare</p>
+                                <img id="imagePreview" class="preview-image" style="max-width: 200px; margin-top: 1rem; display: none;" alt="Anteprima immagine">
+                                <input type="file" id="dishImage" accept="image/*" style="display: none;">
+                            </div>
+                            <button type="button" id="removeImageBtn" style="position: absolute; top: 0.5rem; right: 0.5rem; background: #f44336; color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                     </div>
                     
@@ -352,6 +353,32 @@
                     <div class="form-actions">
                         <button type="button" class="btn btn-outline" id="cancelDish">Annulla</button>
                         <button type="submit" class="btn" id="saveDish">Salva Piatto</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Aggiungi/Modifica Categoria -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="categoryModalTitle">Aggiungi Nuova Categoria</h2>
+                <button class="close-modal" id="closeCategoryModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <div class="form-group">
+                        <label for="categoryName">Nome Categoria *</label>
+                        <input type="text" id="categoryName" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryOrder">Ordinamento</label>
+                        <input type="number" id="categoryOrder" name="order" class="form-control" min="0" value="0">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancelCategory">Annulla</button>
+                        <button type="submit" class="btn">Salva Categoria</button>
                     </div>
                 </form>
             </div>

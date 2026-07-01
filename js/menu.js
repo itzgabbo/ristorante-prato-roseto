@@ -5,29 +5,79 @@
 
 document.addEventListener('DOMContentLoaded', async function() {
     const menuContainer = document.getElementById('menu-sections');
-    
-    // Crea le sezioni del menu dinamicamente
-    const categories = ['antipasti', 'primi', 'secondi', 'contorni', 'pizze', 'dessert', 'bevande', 'vini', 'birre'];
-    
-    // Svuota il contenitore
-    menuContainer.innerHTML = '';
-    
-    // Aggiungi le sezioni per ogni categoria
-    categories.forEach(category => {
-        const section = document.createElement('div');
-        section.className = 'menu-section';
-        section.id = category;
-        section.style.display = category === 'antipasti' ? 'block' : 'none'; // Mostra solo antipasti di default
-        section.innerHTML = `
-            <h2 class="section-title">${category.charAt(0).toUpperCase() + category.slice(1)}</h2>
-            <div class="menu-items"></div>
-        `;
-        menuContainer.appendChild(section);
-    });
+    const categoryButtonsContainer = document.querySelector('.category-buttons');
     
     try {
         // Mostra l'indicatore di caricamento
         showLoading(true);
+        
+        console.log('Caricamento categorie...');
+        
+        // Carica categorie dalle API
+        let categories = [];
+        const categoriesResponse = await fetch('/api/categories');
+        if (categoriesResponse.ok) {
+            const categoriesData = await categoriesResponse.json();
+            categories = categoriesData.data || [];
+        }
+        
+        // Se non ci sono categorie, usa categorie di default
+        if (categories.length === 0) {
+            categories = [
+                { name: 'antipasti', displayName: 'Antipasti', order: 1 },
+                { name: 'primi', displayName: 'Primi Piatti', order: 2 },
+                { name: 'secondi', displayName: 'Secondi', order: 3 },
+                { name: 'contorni', displayName: 'Contorni', order: 4 },
+                { name: 'pizze', displayName: 'Pizze', order: 5 },
+                { name: 'dessert', displayName: 'Dessert', order: 6 },
+                { name: 'bevande', displayName: 'Bevande', order: 7 },
+                { name: 'vini', displayName: 'Vini', order: 8 },
+                { name: 'birre', displayName: 'Birre', order: 9 }
+            ];
+        }
+        
+        // Ordina le categorie per 'order' e poi per nome
+        categories.sort((a, b) => (a.order || 0) - (b.order || 0) || a.name.localeCompare(b.name));
+        
+        // Svuota il contenitore menu
+        menuContainer.innerHTML = '';
+        
+        // Aggiorna i pulsanti delle categorie
+        if (categoryButtonsContainer) {
+            categoryButtonsContainer.innerHTML = '';
+            
+            // Aggiungi pulsante "Tutti"
+            const allBtn = document.createElement('button');
+            allBtn.className = 'category-btn active';
+            allBtn.setAttribute('data-category', 'all');
+            allBtn.textContent = 'Tutti';
+            categoryButtonsContainer.appendChild(allBtn);
+            
+            // Aggiungi pulsanti per ogni categoria
+            categories.forEach(category => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.setAttribute('data-category', category.name);
+                btn.textContent = category.displayName;
+                categoryButtonsContainer.appendChild(btn);
+            });
+            
+            // Reimposta i gestori dei pulsanti
+            setupCategoryButtons();
+        }
+        
+        // Aggiungi le sezioni per ogni categoria
+        categories.forEach(category => {
+            const section = document.createElement('div');
+            section.className = 'menu-section';
+            section.id = category.name;
+            section.style.display = category.name === categories[0].name ? 'block' : 'none'; // Mostra prima categoria di default
+            section.innerHTML = `
+                <h2 class="section-title">${category.displayName}</h2>
+                <div class="menu-items"></div>
+            `;
+            menuContainer.appendChild(section);
+        });
         
         console.log('Caricamento dati del menu...');
         
@@ -52,9 +102,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Popola ogni sezione del menu
         categories.forEach(category => {
-            const section = document.getElementById(category);
+            const section = document.getElementById(category.name);
             if (section) {
-                const items = itemsByCategory[category] || [];
+                const items = itemsByCategory[category.name] || [];
                 if (items.length > 0) {
                     renderMenuSection(section, items);
                 } else {
