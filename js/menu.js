@@ -99,19 +99,28 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         console.log('Caricamento dati del menu...');
         const response = await fetch('/api/menu?available=true');
+        const subheadingResponse = await fetch('/api/subheadings');
         if (response.ok) {
             const data = await response.json();
+            const subheadingData = subheadingResponse.ok ? (await subheadingResponse.json()).data || [] : [];
             const menuItems = data.data || [];
-            console.log('Dati del menu caricati con successo:', menuItems.length, 'piatti');
+            console.log('Dati del menu caricati con successo:', menuItems.length, 'piatti,', subheadingData.length, 'divisori');
 
-            if (menuItems.length > 0) {
+            if (menuItems.length > 0 || subheadingData.length > 0) {
                 const itemsByCategory = groupItemsByCategory(menuItems);
+                const subheadingsByCategory = {};
+                subheadingData.forEach(sub => {
+                    if (!subheadingsByCategory[sub.category]) subheadingsByCategory[sub.category] = [];
+                    subheadingsByCategory[sub.category].push(sub);
+                });
+                
                 categories.forEach(cat => {
                     const section = document.getElementById(cat.name);
                     if (section) {
                         const items = itemsByCategory[cat.name] || [];
-                        if (items.length > 0) {
-                            renderMenuSection(section, items);
+                        const subheadings = subheadingsByCategory[cat.name] || [];
+                        if (items.length > 0 || subheadings.length > 0) {
+                            renderMenuSectionWithSubheadings(section, items, subheadings);
                         }
                     }
                 });
@@ -154,6 +163,48 @@ function renderMenuSection(sectionElement, items) {
             </div>
         </div>
     `).join('');
+    itemsContainer.innerHTML = itemsHtml;
+}
+
+function renderMenuSectionWithSubheadings(sectionElement, items, subheadings) {
+    const itemsContainer = sectionElement.querySelector('.menu-items') || sectionElement;
+    
+    // Combina piatti e divisori in un array unico
+    const combined = [
+        ...items.map(item => ({ type: 'item', data: item, order: item.order })),
+        ...subheadings.map(sub => ({ type: 'subheading', data: sub, order: sub.order }))
+    ];
+    
+    // Ordina tutto per valore di order
+    combined.sort((a, b) => (a.order || 0) - (b.order || 0));
+    
+    const itemsHtml = combined.map(elem => {
+        if (elem.type === 'item') {
+            const item = elem.data;
+            return `
+                <div class="menu-item" data-category="${item.category}">
+                    ${item.image && item.showImage !== false ? `<div class="item-image" style="background-image: url('${item.image}');"></div>` : ''}
+                    <div class="item-info">
+                        <h4>${escapeHtml(item.name)}</h4>
+                        ${item.description ? `<p class="item-description">${escapeHtml(item.description)}</p>` : ''}
+                    </div>
+                    <div class="item-price">
+                        ${item.price.toFixed(2)}€
+                    </div>
+                </div>
+            `;
+        } else {
+            const sub = elem.data;
+            return `
+                <div class="menu-subheading">
+                    <span class="menu-subheading-line"></span>
+                    <span class="menu-subheading-text">${escapeHtml(sub.name)}</span>
+                    <span class="menu-subheading-line"></span>
+                </div>
+            `;
+        }
+    }).join('');
+    
     itemsContainer.innerHTML = itemsHtml;
 }
 

@@ -41,6 +41,7 @@ const app = express();
 const menuRoutes = require('./server/routes/menu');
 const authRoutes = require('./server/routes/auth');
 const categoryRoutes = require('./server/routes/categories');
+const subheadingRoutes = require('./server/routes/subheadings');
 const { createBackup, restoreBackup, listBackups } = require('./server/utils/backup');
 
 // Configurazione multer per upload immagini
@@ -167,6 +168,7 @@ app.get('/menu.html', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/subheadings', subheadingRoutes);
 
 // Rotte per il backup
 app.get('/api/backup/create', protect, async (req, res) => {

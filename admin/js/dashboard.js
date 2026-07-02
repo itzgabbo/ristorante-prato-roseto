@@ -5,6 +5,7 @@
 
 const API_BASE_URL = '/api/menu';
 const CATEGORIES_API_URL = '/api/categories';
+const SUBHEADINGS_API_URL = '/api/subheadings';
 
 async function fetchData(url, options = {}) {
     try {
@@ -58,13 +59,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryForm = document.getElementById('categoryForm');
     const closeCategoryModal = document.getElementById('closeCategoryModal');
     const cancelCategory = document.getElementById('cancelCategory');
+    
+    // Nuovi elementi per divisori
+    const subheadingModal = document.getElementById('subheadingModal');
+    const addSubheadingBtn = document.getElementById('addSubheadingBtn');
+    const subheadingForm = document.getElementById('subheadingForm');
+    const closeSubheadingModal = document.getElementById('closeSubheadingModal');
+    const cancelSubheading = document.getElementById('cancelSubheading');
 
     let currentDishId = null;
     let currentCategory = 'antipasti';
     let allMenuItems = [];
     let allCategories = [];
+    let allSubheadings = [];
     let currentImageUrl = null;
     let currentCategoryId = null;
+    let currentSubheadingId = null;
 
     imageUpload.addEventListener('click', () => dishImage.click());
     dishImage.addEventListener('change', async (e) => {
@@ -183,14 +193,108 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function populateCategorySelect() {
         const select = document.getElementById('dishCategory');
-        if (!select) return;
-        select.innerHTML = '<option value="">Seleziona una categoria</option>';
-        allCategories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.name;
-            option.textContent = cat.displayName;
-            select.appendChild(option);
-        });
+        const subCatSelect = document.getElementById('subheadingCategory');
+        if (select) {
+            select.innerHTML = '<option value="">Seleziona una categoria</option>';
+            allCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.name;
+                option.textContent = cat.displayName;
+                select.appendChild(option);
+            });
+        }
+        if (subCatSelect) {
+            subCatSelect.innerHTML = '<option value="">Seleziona una categoria</option>';
+            allCategories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.name;
+                option.textContent = cat.displayName;
+                subCatSelect.appendChild(option);
+            });
+        }
+    }
+    
+    function populateDishSelectsForSubheading(category) {
+        const afterSelect = document.getElementById('subheadingAfterItem');
+        const beforeSelect = document.getElementById('subheadingBeforeItem');
+        if (afterSelect && beforeSelect) {
+            afterSelect.innerHTML = '<option value="">Nessuno (inizia prima)</option>';
+            beforeSelect.innerHTML = '<option value="">Nessuno (aggiungi alla fine)</option>';
+            const dishesInCategory = allMenuItems.filter(item => item.category === category).sort((a, b) => (a.order || 0) - (b.order || 0));
+            dishesInCategory.forEach(dish => {
+                const option1 = document.createElement('option');
+                option1.value = dish._id;
+                option1.textContent = `${dish.name} (Ordine: ${dish.order})`;
+                afterSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = dish._id;
+                option2.textContent = `${dish.name} (Ordine: ${dish.order})`;
+                beforeSelect.appendChild(option2);
+            });
+        }
+    }
+    
+    async function loadSubheadings() {
+        try {
+            console.log('Caricamento divisori...');
+            const data = await fetchData(SUBHEADINGS_API_URL);
+            allSubheadings = data.data || [];
+            console.log('Divisori caricati:', allSubheadings.length);
+            return allSubheadings;
+        } catch (error) {
+            console.error('Errore nel caricamento dei divisori:', error);
+            showNotification(`Errore nel caricamento dei divisori: ${error.message}`, 'error');
+            return [];
+        }
+    }
+    
+    function addSubheading() {
+        currentSubheadingId = null;
+        document.getElementById('subheadingModalTitle').textContent = 'Aggiungi Nuovo Divisore';
+        subheadingForm.reset();
+        populateCategorySelect();
+        populateDishSelectsForSubheading(currentCategory);
+        document.getElementById('subheadingCategory').value = currentCategory;
+        subheadingModal.style.display = 'flex';
+    }
+    
+    async function editSubheading(id) {
+        try {
+            showLoading(true);
+            const data = await fetchData(`${SUBHEADINGS_API_URL}/${id}`);
+            const subheading = data.data;
+            if (subheading) {
+                currentSubheadingId = id;
+                document.getElementById('subheadingModalTitle').textContent = 'Modifica Divisore';
+                document.getElementById('subheadingName').value = subheading.name;
+                document.getElementById('subheadingCategory').value = subheading.category;
+                populateDishSelectsForSubheading(subheading.category);
+                subheadingModal.style.display = 'flex';
+            }
+        } catch (error) {
+            console.error('Errore nel caricamento del divisore:', error);
+            showNotification(`Errore nel caricamento del divisore: ${error.message}`, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+    
+    async function deleteSubheading(id, name) {
+        if (confirm(`Sei sicuro di voler eliminare il divisore "${name}"?`)) {
+            try {
+                showLoading(true);
+                await fetchData(`${SUBHEADINGS_API_URL}/${id}`, { method: 'DELETE' });
+                showNotification('Divisore eliminato con successo', 'success');
+                await loadSubheadings();
+                await loadMenuItems(currentCategory, searchInput.value); // Re-render menu items to include new subheadings
+            } catch (error) {
+                console.error('Errore durante l\'eliminazione del divisore:', error);
+                showNotification(`Errore durante l'eliminazione: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
     }
 
     async function loadMenuItems(category = 'antipasti', searchQuery = '') {
@@ -226,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderMenuItems(items, category = 'antipasti', searchQuery = '') {
-        console.log('Renderizzazione menu con', items.length, 'piatti');
+        console.log('Renderizzazione menu con', items.length, 'piatti e', allSubheadings.length, 'divisori');
         menuItemsContainer.innerHTML = '';
         let filteredItems = [...items];
         if (category) filteredItems = filteredItems.filter(item => item.category === category);
@@ -238,12 +342,21 @@ document.addEventListener('DOMContentLoaded', function() {
             );
         }
         console.log('Piatti filtrati:', filteredItems.length);
-        filteredItems.sort((a, b) => (a.order || 0) - (b.order || 0));
-        if (filteredItems.length === 0) {
+        
+        // Combina piatti e divisori per la categoria corrente
+        const filteredSubheadings = allSubheadings.filter(sub => sub.category === category);
+        const combined = [
+            ...filteredItems.map(item => ({ type: 'item', data: item, order: item.order })),
+            ...filteredSubheadings.map(sub => ({ type: 'subheading', data: sub, order: sub.order }))
+        ];
+        
+        combined.sort((a, b) => (a.order || 0) - (b.order || 0));
+        
+        if (combined.length === 0) {
             menuItemsContainer.innerHTML = `
                 <div class="no-items">
                     <i class="fas fa-utensils"></i>
-                    <p>Nessun piatto trovato</p>
+                    <p>Nessun piatto o divisore trovato</p>
                     ${searchQuery || category ? '<button class="btn btn-outline mt-2" id="resetFilters">Azzera filtri</button>' : ''}
                 </div>
             `;
@@ -258,48 +371,81 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             return;
         }
-        filteredItems.forEach(item => {
-            const dishElement = document.createElement('div');
-            dishElement.className = 'menu-item-card';
-            
-            let imageHtml = '';
-            let detailsClass = 'menu-item-details';
-            if (!item.image) {
-                detailsClass += ' menu-item-details-full';
-            }
-            
-            if (item.image) {
-                imageHtml = `<div class="menu-item-image" style="background-image: url('${item.image}')">
-                    ${!item.isAvailable ? '<span class="menu-item-badge">Non disponibile</span>' : ''}
-                </div>`;
-            }
-            
-            dishElement.innerHTML = `
-                ${imageHtml}
-                <div class="${detailsClass}">
-                    <div class="menu-item-header">
-                        <h3 class="menu-item-name">${item.name}</h3>
-                        <span class="menu-item-price">€${item.price.toFixed(2)}</span>
-                    </div>
-                    ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
-                    <div class="menu-item-footer">
-                        <label class="status-toggle">
-                            <input type="checkbox" ${item.isAvailable ? 'checked' : ''} data-id="${item._id}">
-                            <span class="slider"></span>
-                        </label>
-                        <div class="menu-item-actions">
-                            <button class="action-btn edit-btn" data-id="${item._id}" title="Modifica">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn delete-btn" data-id="${item._id}" title="Elimina">
-                                <i class="fas fa-trash"></i>
-                            </button>
+        
+        combined.forEach(elem => {
+            if (elem.type === 'subheading') {
+                const subheadingElement = document.createElement('div');
+                subheadingElement.className = 'menu-item-card';
+                subheadingElement.style.background = 'linear-gradient(135deg, #f5f7fa, #e4e8eb)';
+                subheadingElement.innerHTML = `
+                    <div class="menu-item-details menu-item-details-full">
+                        <div class="menu-item-header">
+                            <h3 class="menu-item-name" style="font-family: 'Playfair Display', serif; color: var(--primary-color); font-style: italic;">📌 ${elem.data.name}</h3>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <span style="font-size: 0.85rem; color: #666;">Ordine: ${elem.data.order}</span>
+                            </div>
+                        </div>
+                        <div class="menu-item-footer" style="justify-content: flex-end;">
+                            <div class="menu-item-actions">
+                                <button class="action-btn edit-btn" data-subheading-id="${elem.data._id}" title="Modifica">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" data-subheading-id="${elem.data._id}" title="Elimina">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-            menuItemsContainer.appendChild(dishElement);
+                `;
+                menuItemsContainer.appendChild(subheadingElement);
+            } else {
+                const item = elem.data;
+                const dishElement = document.createElement('div');
+                dishElement.className = 'menu-item-card';
+                
+                let imageHtml = '';
+                let detailsClass = 'menu-item-details';
+                if (!item.image) {
+                    detailsClass += ' menu-item-details-full';
+                }
+                
+                if (item.image) {
+                    imageHtml = `<div class="menu-item-image" style="background-image: url('${item.image}')">
+                        ${!item.isAvailable ? '<span class="menu-item-badge">Non disponibile</span>' : ''}
+                    </div>`;
+                }
+                
+                dishElement.innerHTML = `
+                    ${imageHtml}
+                    <div class="${detailsClass}">
+                        <div class="menu-item-header">
+                            <h3 class="menu-item-name">${item.name}</h3>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+                                <span class="menu-item-price">€${item.price.toFixed(2)}</span>
+                                <span style="font-size: 0.75rem; color: #999;">Ordine: ${item.order}</span>
+                            </div>
+                        </div>
+                        ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
+                        <div class="menu-item-footer">
+                            <label class="status-toggle">
+                                <input type="checkbox" ${item.isAvailable ? 'checked' : ''} data-id="${item._id}">
+                                <span class="slider"></span>
+                            </label>
+                            <div class="menu-item-actions">
+                                <button class="action-btn edit-btn" data-id="${item._id}" title="Modifica">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete-btn" data-id="${item._id}" title="Elimina">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                menuItemsContainer.appendChild(dishElement);
+            }
         });
+        
         setupEventListeners();
     }
 
@@ -307,13 +453,24 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const dishId = e.currentTarget.getAttribute('data-id');
-                editDish(dishId);
+                const subId = e.currentTarget.getAttribute('data-subheading-id');
+                if (subId) {
+                    editSubheading(subId);
+                } else if (dishId) {
+                    editDish(dishId);
+                }
             });
         });
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const dishId = e.currentTarget.getAttribute('data-id');
-                deleteDish(dishId);
+                const subId = e.currentTarget.getAttribute('data-subheading-id');
+                if (subId) {
+                    const subheading = allSubheadings.find(s => s._id === subId);
+                    deleteSubheading(subId, subheading ? subheading.name : '');
+                } else if (dishId) {
+                    deleteDish(dishId);
+                }
             });
         });
         document.querySelectorAll('.status-toggle input').forEach(toggle => {
@@ -512,11 +669,63 @@ document.addEventListener('DOMContentLoaded', function() {
 
     addDishBtn.addEventListener('click', addDish);
     addCategoryBtn.addEventListener('click', addCategory);
+    addSubheadingBtn.addEventListener('click', addSubheading);
     closeModal.addEventListener('click', () => dishModal.style.display = 'none');
     cancelDish.addEventListener('click', () => dishModal.style.display = 'none');
     closeCategoryModal.addEventListener('click', () => categoryModal.style.display = 'none');
     cancelCategory.addEventListener('click', () => categoryModal.style.display = 'none');
-    window.addEventListener('click', (e) => { if (e.target === dishModal) dishModal.style.display = 'none'; if (e.target === categoryModal) categoryModal.style.display = 'none'; });
+    closeSubheadingModal.addEventListener('click', () => subheadingModal.style.display = 'none');
+    cancelSubheading.addEventListener('click', () => subheadingModal.style.display = 'none');
+    window.addEventListener('click', (e) => { 
+        if (e.target === dishModal) dishModal.style.display = 'none'; 
+        if (e.target === categoryModal) categoryModal.style.display = 'none'; 
+        if (e.target === subheadingModal) subheadingModal.style.display = 'none'; 
+    });
+    
+    // Update dish selects when category changes in subheading form
+    document.getElementById('subheadingCategory').addEventListener('change', (e) => {
+        populateDishSelectsForSubheading(e.target.value);
+    });
+    
+    // Subheading form submit listener
+    subheadingForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(subheadingForm);
+        const name = formData.get('name');
+        const category = formData.get('category');
+        const afterItemId = formData.get('afterItemId');
+        const beforeItemId = formData.get('beforeItemId');
+        
+        const subheadingData = { name, category };
+        if (afterItemId) subheadingData.afterItemId = afterItemId;
+        if (beforeItemId) subheadingData.beforeItemId = beforeItemId;
+        
+        try {
+            showLoading(true);
+            if (currentSubheadingId) {
+                await fetchData(`${SUBHEADINGS_API_URL}/${currentSubheadingId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(subheadingData)
+                });
+                showNotification('Divisore aggiornato con successo', 'success');
+            } else {
+                await fetchData(SUBHEADINGS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(subheadingData)
+                });
+                showNotification('Divisore aggiunto con successo', 'success');
+            }
+            await loadSubheadings();
+            await loadMenuItems(currentCategory, searchInput.value); // Re-render menu items
+            subheadingModal.style.display = 'none';
+            subheadingForm.reset();
+        } catch (error) {
+            console.error('Errore durante il salvataggio del divisore:', error);
+            showNotification(`Errore durante il salvataggio: ${error.message}`, 'error');
+        } finally {
+            showLoading(false);
+        }
+    });
     
     const mobileLogoutBtn = document.getElementById('mobileLogout');
     if (mobileLogoutBtn) {
@@ -582,6 +791,7 @@ document.addEventListener('DOMContentLoaded', function() {
         await loadCategories();
         if (allCategories.length > 0) currentCategory = allCategories[0].name;
         await loadMenuItems(currentCategory);
+        await loadSubheadings();
     }
     initDashboard();
 });
