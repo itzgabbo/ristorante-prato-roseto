@@ -331,6 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modalTitle').textContent = 'Aggiungi Nuovo Piatto';
         dishForm.reset();
         document.getElementById('dishIsAvailable').checked = true;
+        document.getElementById('dishShowImage').checked = true;
         document.getElementById('dishOrder').value = 0;
         imagePreview.style.display = 'none';
         imagePreview.src = '';
@@ -352,6 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('dishPrice').value = dish.price || '';
                 document.getElementById('dishDescription').value = dish.description || '';
                 document.getElementById('dishIsAvailable').checked = dish.isAvailable !== false;
+                document.getElementById('dishShowImage').checked = dish.showImage !== false;
                 document.getElementById('dishOrder').value = dish.order || 0;
                 if (dish.image) {
                     imagePreview.src = dish.image;
@@ -524,6 +526,7 @@ document.addEventListener('DOMContentLoaded', function() {
             price: parseFloat(document.getElementById('dishPrice').value),
             description: document.getElementById('dishDescription').value,
             isAvailable: document.getElementById('dishIsAvailable').checked,
+            showImage: document.getElementById('dishShowImage').checked,
             order: parseInt(document.getElementById('dishOrder').value) || 0
         };
         if (currentImageUrl) dishData.image = currentImageUrl;

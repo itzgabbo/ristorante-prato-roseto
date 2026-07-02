@@ -30,6 +30,10 @@ const menuItemSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    showImage: {
+        type: Boolean,
+        default: true
+    },
     order: {
         type: Number,
         default: 0
