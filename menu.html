@@ -361,47 +361,10 @@
     <!-- Script per il menu a scomparsa su mobile -->
     <script src="js/menu-toggle.js"></script>
     <script src="js/mobile-menu.js"></script>
-    
+
     <!-- Script per il caricamento dinamico del menu -->
-    <!-- Includi il file JavaScript per la gestione del menu -->
     <script src="js/menu.js"></script>
-    
-    <!-- Script per la gestione dei pulsanti delle categorie -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Gestione dei pulsanti delle categorie
-            const categoryButtons = document.querySelectorAll('.category-btn');
-            const sections = document.querySelectorAll('.menu-section');
-            
-            // Funzione per mostrare una categoria specifica
-            function showCategory(category) {
-                sections.forEach(section => {
-                    if (section.id === category) {
-                        section.style.display = 'block';
-                    } else {
-                        section.style.display = 'none';
-                    }
-                });
-            }
-            
-            // Mostra Antipasti di default
-            showCategory('antipasti');
-            
-            categoryButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Rimuovi la classe active da tutti i pulsanti
-                    categoryButtons.forEach(btn => btn.classList.remove('active'));
-                    
-                    // Aggiungi la classe active al pulsante cliccato
-                    this.classList.add('active');
-                    
-                    // Mostra la categoria selezionata
-                    const category = this.getAttribute('data-category');
-                    showCategory(category);
-                });
-            });
-        });
-    </script>
+
     <!-- QR Code in fondo alla pagina -->
     <div class="menu-container" style="padding-top: 1rem; padding-bottom: 3rem; text-align: center;">
         <div class="qrcode-container">
