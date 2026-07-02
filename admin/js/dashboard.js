@@ -517,6 +517,20 @@ document.addEventListener('DOMContentLoaded', function() {
     closeCategoryModal.addEventListener('click', () => categoryModal.style.display = 'none');
     cancelCategory.addEventListener('click', () => categoryModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target === dishModal) dishModal.style.display = 'none'; if (e.target === categoryModal) categoryModal.style.display = 'none'; });
+    
+    const mobileLogoutBtn = document.getElementById('mobileLogout');
+    if (mobileLogoutBtn) {
+        mobileLogoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (Auth && Auth.logout) {
+                Auth.logout();
+            } else {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('sessionTimestamp');
+                window.location.href = 'login.html';
+            }
+        });
+    }
 
     dishForm.addEventListener('submit', async (e) => {
         e.preventDefault();

@@ -18,10 +18,29 @@ class Auth {
         }
     }
 
+    // Verifica se la sessione è scaduta (15 minuti)
+    static isSessionExpired() {
+        const sessionTimestamp = localStorage.getItem('sessionTimestamp');
+        if (!sessionTimestamp) return true;
+
+        const SESSION_TIMEOUT = 15 * 60 * 1000; // 15 minuti in millisecondi
+        const elapsed = Date.now() - parseInt(sessionTimestamp);
+        return elapsed > SESSION_TIMEOUT;
+    }
+
+    // Aggiorna il timestamp della sessione (attività dell'utente)
+    static updateSessionActivity() {
+        localStorage.setItem('sessionTimestamp', Date.now().toString());
+    }
+
     // Reindirizza alla pagina di login se non autenticato
     static requireAuth() {
         if (!this.isAuthenticated()) {
             window.location.href = 'login.html';
+            return false;
+        }
+        if (this.isSessionExpired()) {
+            this.logout();
             return false;
         }
         return true;
@@ -44,6 +63,7 @@ class Auth {
         }
 
         localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('sessionTimestamp', Date.now().toString());
 
         const redirectTo = sessionStorage.getItem('redirectAfterLogin') || 'dashboard.html';
         sessionStorage.removeItem('redirectAfterLogin');
@@ -59,6 +79,7 @@ class Auth {
     // Esegui il logout
     static logout() {
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('sessionTimestamp');
         window.location.href = 'login.html';
     }
 
@@ -187,11 +208,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const isLoginPage = window.location.pathname.endsWith('login.html');
     const isAuthenticated = Auth.isAuthenticated();
 
+    // Verifica scadenza sessione se non siamo nella pagina di login
+    if (!isLoginPage && isAuthenticated && Auth.isSessionExpired()) {
+        Auth.logout();
+        return;
+    }
+
     // Se siamo nella pagina di login ma siamo già autenticati, reindirizziamo alla dashboard
     if (isLoginPage && isAuthenticated) {
         // Usiamo replace invece di href per evitare di inserire la pagina di login nella cronologia
         window.location.replace('dashboard.html');
-    } 
+    }
     // Se non siamo nella pagina di login e non siamo autenticati, reindirizziamo al login
     else if (!isLoginPage && !isAuthenticated) {
         // Salviamo la pagina corrente per il reindirizzamento dopo il login
@@ -206,4 +233,14 @@ document.addEventListener('DOMContentLoaded', function() {
     else if (isLoginPage && isAuthenticated) {
         window.location.replace('dashboard.html');
     }
+
+    // Aggiungi tracciamento attività dell'utente per aggiornare il timestamp della sessione
+    const activityEvents = ['click', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach(event => {
+        document.addEventListener(event, () => {
+            if (Auth.isAuthenticated()) {
+                Auth.updateSessionActivity();
+            }
+        });
+    });
 });
