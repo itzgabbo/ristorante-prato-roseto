@@ -259,9 +259,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function addSubheading() {
+    async function addSubheading() {
+        alert('addSubheading() called!');
         console.log('addSubheading() called');
         currentSubheadingId = null;
+        
+        // Ensure we have menu items if not loaded yet
+        if (!allMenuItems || allMenuItems.length === 0) {
+            console.log('Loading menu items first');
+            await loadMenuItems(currentCategory);
+        }
+        
         const modalTitle = document.getElementById('subheadingModalTitle');
         if (!modalTitle) console.error('ERROR: subheadingModalTitle not found');
         else modalTitle.textContent = 'Aggiungi Nuovo Divisore';
@@ -276,9 +284,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!categorySelect) console.error('ERROR: subheadingCategory select not found');
         else categorySelect.value = currentCategory;
         
-        if (!subheadingModal) console.error('ERROR: subheadingModal not found');
-        else subheadingModal.style.display = 'flex';
-        console.log('subheadingModal.style.display set to flex');
+        if (!subheadingModal) {
+            console.error('ERROR: subheadingModal not found');
+            alert('Errore: elemento subheadingModal non trovato!');
+        } else {
+            console.log('subheadingModal found, setting display to flex');
+            subheadingModal.style.setProperty('display', 'flex', 'important');
+            console.log('subheadingModal.style.display:', subheadingModal.style.display);
+        }
     }
     
     async function editSubheading(id) {
