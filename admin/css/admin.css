@@ -855,6 +855,7 @@ tr:hover {
 .menu-item-actions {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
 }
 
 /* Buttons */

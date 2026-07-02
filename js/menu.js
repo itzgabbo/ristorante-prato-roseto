@@ -5,8 +5,9 @@
 
 document.addEventListener('DOMContentLoaded', async function() {
     const menuContainer = document.getElementById('menu-sections');
-    const categoryButtonsContainer = document.querySelector('.category-buttons');
-    
+    const categoryButtonsContainer = document.getElementById('categoryButtonsTop');
+    const categoryButtonsBottom = document.getElementById('categoryButtonsBottom');
+
     try {
         // Mostra l'indicatore di caricamento
         showLoading(true);
@@ -45,14 +46,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Aggiorna i pulsanti delle categorie
         if (categoryButtonsContainer) {
             categoryButtonsContainer.innerHTML = '';
-            
-            // Aggiungi pulsante "Tutti"
-            const allBtn = document.createElement('button');
-            allBtn.className = 'category-btn active';
-            allBtn.setAttribute('data-category', 'all');
-            allBtn.textContent = 'Tutti';
-            categoryButtonsContainer.appendChild(allBtn);
-            
+
             // Aggiungi pulsanti per ogni categoria
             categories.forEach(category => {
                 const btn = document.createElement('button');
@@ -61,9 +55,38 @@ document.addEventListener('DOMContentLoaded', async function() {
                 btn.textContent = category.displayName;
                 categoryButtonsContainer.appendChild(btn);
             });
-            
+
+            // Imposta la prima categoria come attiva
+            if (categories.length > 0) {
+                const firstBtn = categoryButtonsContainer.querySelector('.category-btn');
+                if (firstBtn) {
+                    firstBtn.classList.add('active');
+                }
+            }
+
             // Reimposta i gestori dei pulsanti
             setupCategoryButtons();
+        }
+
+        // Popola anche la barra in basso
+        if (categoryButtonsBottom) {
+            categoryButtonsBottom.innerHTML = '';
+
+            categories.forEach(category => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.setAttribute('data-category', category.name);
+                btn.textContent = category.displayName;
+                categoryButtonsBottom.appendChild(btn);
+            });
+
+            // Imposta la prima categoria come attiva anche in basso
+            if (categories.length > 0) {
+                const firstBtn = categoryButtonsBottom.querySelector('.category-btn');
+                if (firstBtn) {
+                    firstBtn.classList.add('active');
+                }
+            }
         }
         
         // Aggiungi le sezioni per ogni categoria
@@ -188,34 +211,44 @@ function renderMenuSection(sectionElement, items) {
  * Configura i pulsanti delle categorie
  */
 function setupCategoryButtons() {
-    const buttons = document.querySelectorAll('.category-btn');
-    
-    buttons.forEach(button => {
+    const topButtons = document.querySelectorAll('.category-buttons:not(.category-buttons-bottom) .category-btn');
+    const bottomButtons = document.querySelectorAll('.category-buttons-bottom .category-btn');
+    const allButtons = document.querySelectorAll('.category-btn');
+
+    allButtons.forEach(button => {
         button.addEventListener('click', () => {
             const category = button.getAttribute('data-category');
-            
-            // Aggiorna lo stato attivo dei pulsanti
-            buttons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
+            const isBottomClick = button.closest('.category-buttons-bottom');
+
+            // Aggiorna lo stato attivo di tutti i pulsanti (sincronizzazione)
+            allButtons.forEach(btn => {
+                if (btn.getAttribute('data-category') === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
             // Mostra/nascondi le sezioni
             const sections = document.querySelectorAll('.menu-section');
             sections.forEach(section => {
-                if (category === 'all' || section.id === category) {
+                if (section.id === category) {
                     section.style.display = 'block';
                 } else {
                     section.style.display = 'none';
                 }
             });
-            
+
             // Scorri fino alla sezione selezionata
-            if (category !== 'all') {
-                const section = document.getElementById(category);
-                if (section) {
+            const section = document.getElementById(category);
+            if (section) {
+                if (isBottomClick) {
+                    // Se cliccato dal basso, scrolla all'inizio della pagina
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    // Se cliccato dall'alto, scrolla alla sezione
                     section.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         });
     });

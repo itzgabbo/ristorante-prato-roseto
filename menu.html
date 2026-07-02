@@ -57,6 +57,16 @@
             padding: 0 1rem;
         }
 
+        .category-buttons-bottom {
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+            position: sticky;
+            bottom: 0;
+            background: linear-gradient(to top, #faf8f5 90%, transparent);
+            padding: 1rem;
+            z-index: 100;
+        }
+
         .category-btn {
             background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
             border: 2px solid #ddd;
@@ -312,16 +322,8 @@
         </div>
 
         <!-- Pulsanti delle categorie -->
-        <div class="category-buttons">
-            <button class="category-btn active" data-category="antipasti">Antipasti</button>
-            <button class="category-btn" data-category="primi">Primi Piatti</button>
-            <button class="category-btn" data-category="secondi">Secondi Piatti</button>
-            <button class="category-btn" data-category="contorni">Contorni</button>
-            <button class="category-btn" data-category="pizze">Pizze</button>
-            <button class="category-btn" data-category="dessert">Dessert</button>
-            <button class="category-btn" data-category="bevande">Bevande</button>
-            <button class="category-btn" data-category="vini">Vini</button>
-            <button class="category-btn" data-category="birre">Birre</button>
+        <div class="category-buttons" id="categoryButtonsTop">
+            <!-- Verranno popolati dinamicamente -->
         </div>
 
         <!-- Sezioni del menu generate dinamicamente -->
@@ -330,6 +332,11 @@
                 <i class="fas fa-spinner fa-spin"></i>
                 <p>Caricamento del menu in corso...</p>
             </div>
+        </div>
+
+        <!-- Pulsanti delle categorie in basso (duplicato) -->
+        <div class="category-buttons category-buttons-bottom" id="categoryButtonsBottom">
+            <!-- Verranno popolati dinamicamente -->
         </div>
     </div>
 
