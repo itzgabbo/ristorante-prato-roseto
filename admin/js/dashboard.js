@@ -215,22 +215,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function populateDishSelectsForSubheading(category) {
+        console.log('populateDishSelectsForSubheading called with category:', category);
         const afterSelect = document.getElementById('subheadingAfterItem');
         const beforeSelect = document.getElementById('subheadingBeforeItem');
         if (afterSelect && beforeSelect) {
             afterSelect.innerHTML = '<option value="">Nessuno (inizia prima)</option>';
             beforeSelect.innerHTML = '<option value="">Nessuno (aggiungi alla fine)</option>';
-            const dishesInCategory = allMenuItems.filter(item => item.category === category).sort((a, b) => (a.order || 0) - (b.order || 0));
-            dishesInCategory.forEach(dish => {
-                const option1 = document.createElement('option');
-                option1.value = dish._id;
-                option1.textContent = `${dish.name} (Ordine: ${dish.order})`;
-                afterSelect.appendChild(option1);
+            
+            // Safely get dishes in category, even if allMenuItems is empty/undefined
+            const dishesInCategory = (allMenuItems || [])
+                .filter(item => item && item.category === category)
+                .sort((a, b) => (a.order || 0) - (b.order || 0));
                 
-                const option2 = document.createElement('option');
-                option2.value = dish._id;
-                option2.textContent = `${dish.name} (Ordine: ${dish.order})`;
-                beforeSelect.appendChild(option2);
+            console.log('Dishes found in category:', dishesInCategory);
+            
+            dishesInCategory.forEach(dish => {
+                if (dish && dish._id && dish.name) {
+                    const option1 = document.createElement('option');
+                    option1.value = dish._id;
+                    option1.textContent = `${dish.name} (Ordine: ${dish.order || 0})`;
+                    afterSelect.appendChild(option1);
+                    
+                    const option2 = document.createElement('option');
+                    option2.value = dish._id;
+                    option2.textContent = `${dish.name} (Ordine: ${dish.order || 0})`;
+                    beforeSelect.appendChild(option2);
+                }
             });
         }
     }
@@ -250,13 +260,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function addSubheading() {
+        console.log('addSubheading() called');
         currentSubheadingId = null;
-        document.getElementById('subheadingModalTitle').textContent = 'Aggiungi Nuovo Divisore';
-        subheadingForm.reset();
+        const modalTitle = document.getElementById('subheadingModalTitle');
+        if (!modalTitle) console.error('ERROR: subheadingModalTitle not found');
+        else modalTitle.textContent = 'Aggiungi Nuovo Divisore';
+        
+        if (!subheadingForm) console.error('ERROR: subheadingForm not found');
+        else subheadingForm.reset();
+        
         populateCategorySelect();
         populateDishSelectsForSubheading(currentCategory);
-        document.getElementById('subheadingCategory').value = currentCategory;
-        subheadingModal.style.display = 'flex';
+        
+        const categorySelect = document.getElementById('subheadingCategory');
+        if (!categorySelect) console.error('ERROR: subheadingCategory select not found');
+        else categorySelect.value = currentCategory;
+        
+        if (!subheadingModal) console.error('ERROR: subheadingModal not found');
+        else subheadingModal.style.display = 'flex';
+        console.log('subheadingModal.style.display set to flex');
     }
     
     async function editSubheading(id) {
@@ -667,9 +689,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    console.log('Checking buttons:', {addDishBtn, addCategoryBtn, addSubheadingBtn});
     addDishBtn.addEventListener('click', addDish);
     addCategoryBtn.addEventListener('click', addCategory);
-    addSubheadingBtn.addEventListener('click', addSubheading);
+    if (addSubheadingBtn) {
+        console.log('Adding click listener to addSubheadingBtn');
+        addSubheadingBtn.addEventListener('click', function(e) {
+            console.log('addSubheadingBtn clicked, event:', e);
+            try {
+                addSubheading();
+            } catch (error) {
+                console.error('Error in addSubheading():', error);
+                showNotification(`Errore nell'apertura del modulo: ${error.message}`, 'error');
+            }
+        });
+    } else {
+        console.error('ERROR: addSubheadingBtn element not found!');
+    }
     closeModal.addEventListener('click', () => dishModal.style.display = 'none');
     cancelDish.addEventListener('click', () => dishModal.style.display = 'none');
     closeCategoryModal.addEventListener('click', () => categoryModal.style.display = 'none');
