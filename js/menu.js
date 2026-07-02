@@ -8,151 +8,153 @@ document.addEventListener('DOMContentLoaded', async function() {
     const categoryButtonsContainer = document.getElementById('categoryButtonsTop');
     const categoryButtonsBottom = document.getElementById('categoryButtonsBottom');
 
-    try {
-        // Mostra l'indicatore di caricamento
-        showLoading(true);
-        
-        console.log('Caricamento categorie...');
-        
-        // Carica categorie dalle API
-        let categories = [];
-        const categoriesResponse = await fetch('/api/categories');
-        if (categoriesResponse.ok) {
-            const categoriesData = await categoriesResponse.json();
-            categories = categoriesData.data || [];
-        }
-        
-        // Se non ci sono categorie, usa categorie di default
-        if (categories.length === 0) {
-            categories = [
-                { name: 'antipasti', displayName: 'Antipasti', order: 1 },
-                { name: 'primi', displayName: 'Primi Piatti', order: 2 },
-                { name: 'secondi', displayName: 'Secondi', order: 3 },
-                { name: 'contorni', displayName: 'Contorni', order: 4 },
-                { name: 'pizze', displayName: 'Pizze', order: 5 },
-                { name: 'dessert', displayName: 'Dessert', order: 6 },
-                { name: 'bevande', displayName: 'Bevande', order: 7 },
-                { name: 'vini', displayName: 'Vini', order: 8 },
-                { name: 'birre', displayName: 'Birre', order: 9 }
-            ];
-        }
-        
-        // Ordina le categorie per 'order' e poi per nome
-        categories.sort((a, b) => (a.order || 0) - (b.order || 0) || a.name.localeCompare(b.name));
-        
-        // Svuota il contenitore menu
-        menuContainer.innerHTML = '';
-        
-        // Aggiorna i pulsanti delle categorie
-        if (categoryButtonsContainer) {
-            categoryButtonsContainer.innerHTML = '';
+    // 1. First, always use static categories to 100% guarantee we have them
+    const staticCategories = [
+        { name: 'antipasti', displayName: 'Antipasti', order: 1 },
+        { name: 'primi', displayName: 'Primi Piatti', order: 2 },
+        { name: 'secondi', displayName: 'Secondi', order: 3 },
+        { name: 'contorni', displayName: 'Contorni', order: 4 },
+        { name: 'pizze', displayName: 'Pizze', order: 5 },
+        { name: 'dessert', displayName: 'Dessert', order: 6 },
+        { name: 'bevande', displayName: 'Bevande', order: 7 },
+        { name: 'vini', displayName: 'Vini', order: 8 },
+        { name: 'birre', displayName: 'Birre', order: 9 }
+    ];
 
-            // Aggiungi pulsanti per ogni categoria
-            categories.forEach(category => {
-                const btn = document.createElement('button');
-                btn.className = 'category-btn';
-                btn.setAttribute('data-category', category.name);
-                btn.textContent = category.displayName;
-                categoryButtonsContainer.appendChild(btn);
-            });
-
-            // Imposta la prima categoria come attiva
-            if (categories.length > 0) {
-                const firstBtn = categoryButtonsContainer.querySelector('.category-btn');
-                if (firstBtn) {
-                    firstBtn.classList.add('active');
-                }
-            }
-
-            // Reimposta i gestori dei pulsanti
-            setupCategoryButtons();
-        }
-
-        // Popola anche la barra in basso
-        if (categoryButtonsBottom) {
-            categoryButtonsBottom.innerHTML = '';
-
-            categories.forEach(category => {
-                const btn = document.createElement('button');
-                btn.className = 'category-btn';
-                btn.setAttribute('data-category', category.name);
-                btn.textContent = category.displayName;
-                categoryButtonsBottom.appendChild(btn);
-            });
-
-            // Imposta la prima categoria come attiva anche in basso
-            if (categories.length > 0) {
-                const firstBtn = categoryButtonsBottom.querySelector('.category-btn');
-                if (firstBtn) {
-                    firstBtn.classList.add('active');
-                }
-            }
-        }
-        
-        // Aggiungi le sezioni per ogni categoria
-        categories.forEach(category => {
-            const section = document.createElement('div');
-            section.className = 'menu-section';
-            section.id = category.name;
-            section.style.display = category.name === categories[0].name ? 'block' : 'none'; // Mostra prima categoria di default
-            section.innerHTML = `
-                <h2 class="section-title">${category.displayName}</h2>
-                <div class="menu-items"></div>
-            `;
-            menuContainer.appendChild(section);
+    // 2. Always populate both button containers RIGHT AWAY before any API calls
+    if (categoryButtonsContainer) {
+        categoryButtonsContainer.innerHTML = '';
+        staticCategories.forEach(category => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn';
+            btn.setAttribute('data-category', category.name);
+            btn.textContent = category.displayName;
+            categoryButtonsContainer.appendChild(btn);
         });
+
+        if (staticCategories.length > 0) {
+            const firstBtn = categoryButtonsContainer.querySelector('.category-btn');
+            if (firstBtn) firstBtn.classList.add('active');
+        }
+    }
+
+    if (categoryButtonsBottom) {
+        categoryButtonsBottom.innerHTML = '';
+        staticCategories.forEach(category => {
+            const btn = document.createElement('button');
+            btn.className = 'category-btn';
+            btn.setAttribute('data-category', category.name);
+            btn.textContent = category.displayName;
+            categoryButtonsBottom.appendChild(btn);
+        });
+
+        if (staticCategories.length > 0) {
+            const firstBtn = categoryButtonsBottom.querySelector('.category-btn');
+            if (firstBtn) firstBtn.classList.add('active');
+        }
+    }
+
+    // 3. Initialize category button listeners
+    setupCategoryButtons();
+
+    // 4. Now build menu sections
+    menuContainer.innerHTML = '';
+    staticCategories.forEach(category => {
+        const section = document.createElement('div');
+        section.className = 'menu-section';
+        section.id = category.name;
+        section.style.display = category.name === staticCategories[0].name ? 'block' : 'none';
+        section.innerHTML = `<h2 class="section-title">${category.displayName}</h2><div class="menu-items"></div>`;
+        menuContainer.appendChild(section);
+    });
+
+    try {
+        showLoading(true);
+        console.log('Caricamento categorie dalle API...');
         
+        // Try to load categories from API, but keep static if fails
+        let categories = [...staticCategories];
+        try {
+            const categoriesResponse = await fetch('/api/categories');
+            if (categoriesResponse.ok) {
+                const categoriesData = await categoriesResponse.json();
+                if (categoriesData.data && categoriesData.data.length > 0) {
+                    categories = categoriesData.data;
+                    categories.sort((a, b) => (a.order || 0) - (b.order || 0) || a.name.localeCompare(b.name));
+
+                    // Re-populate button containers with API categories
+                    if (categoryButtonsContainer) {
+                        categoryButtonsContainer.innerHTML = '';
+                        categories.forEach(category => {
+                            const btn = document.createElement('button');
+                            btn.className = 'category-btn';
+                            btn.setAttribute('data-category', category.name);
+                            btn.textContent = category.displayName;
+                            categoryButtonsContainer.appendChild(btn);
+                        });
+                        if (categories.length > 0) categoryButtonsContainer.querySelector('.category-btn').classList.add('active');
+                    }
+
+                    if (categoryButtonsBottom) {
+                        categoryButtonsBottom.innerHTML = '';
+                        categories.forEach(category => {
+                            const btn = document.createElement('button');
+                            btn.className = 'category-btn';
+                            btn.setAttribute('data-category', category.name);
+                            btn.textContent = category.displayName;
+                            categoryButtonsBottom.appendChild(btn);
+                        });
+                        if (categories.length > 0) categoryButtonsBottom.querySelector('.category-btn').classList.add('active');
+                    }
+
+                    // Rebuild sections
+                    menuContainer.innerHTML = '';
+                    categories.forEach(category => {
+                        const section = document.createElement('div');
+                        section.className = 'menu-section';
+                        section.id = category.name;
+                        section.style.display = category.name === categories[0].name ? 'block' : 'none';
+                        section.innerHTML = `<h2 class="section-title">${category.displayName}</h2><div class="menu-items"></div>`;
+                        menuContainer.appendChild(section);
+                    });
+
+                    setupCategoryButtons();
+                }
+            }
+        } catch (catErr) {
+            console.log('Using static categories (API categories failed):', catErr);
+            categories = staticCategories;
+        }
+
+        // Load menu items
         console.log('Caricamento dati del menu...');
-        
-        // Carica i dati del menu dalle API
         const response = await fetch('/api/menu?available=true');
-        if (!response.ok) {
+        if (response.ok) {
+            const data = await response.json();
+            const menuItems = data.data || [];
+            console.log('Dati del menu caricati con successo:', menuItems.length, 'piatti');
+            
+            if (menuItems.length > 0) {
+                const itemsByCategory = groupItemsByCategory(menuItems);
+                categories.forEach(category => {
+                    const section = document.getElementById(category.name);
+                    if (section) {
+                        const items = itemsByCategory[category.name] || [];
+                        if (items.length > 0) {
+                            renderMenuSection(section, items);
+                        }
+                    }
+                });
+            } else {
+                showSampleData();
+            }
+        } else {
             throw new Error('Impossibile caricare il menu');
         }
         
-        const data = await response.json();
-        const menuItems = data.data || [];
-        
-        console.log('Dati del menu caricati con successo:', menuItems.length, 'piatti');
-        
-        if (menuItems.length === 0) {
-            showNoItemsMessage();
-            return;
-        }
-        
-        // Raggruppa i piatti per categoria
-        const itemsByCategory = groupItemsByCategory(menuItems);
-        
-        // Popola ogni sezione del menu
-        categories.forEach(category => {
-            const section = document.getElementById(category.name);
-            if (section) {
-                const items = itemsByCategory[category.name] || [];
-                if (items.length > 0) {
-                    renderMenuSection(section, items);
-                } else {
-                    section.style.display = 'none';
-                }
-            }
-        });
-        
     } catch (error) {
         console.error('Errore nel caricamento del menu:', error);
-        
-        // Mostra un messaggio di errore più dettagliato
-        let errorMessage = 'Impossibile caricare il menu. ';
-        
-        if (error.message.includes('Failed to fetch')) {
-            errorMessage += 'Impossibile connettersi al server. Verifica la tua connessione internet.';
-        } else if (error.message.includes('404')) {
-            errorMessage += 'Endpoint API non trovato. Contatta l\'amministratore.';
-        } else {
-            errorMessage += 'Si è verificato un errore. Riprova più tardi.';
-        }
-        
-        showError(errorMessage);
-        
-        // Mostra i dati di esempio in caso di errore
+        showError('Errore nel caricamento, mostro dati di esempio');
         showSampleData();
     } finally {
         showLoading(false);
