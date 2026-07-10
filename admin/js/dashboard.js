@@ -7,79 +7,6 @@ const API_BASE_URL = '/api/menu';
 const CATEGORIES_API_URL = '/api/categories';
 const SUBHEADINGS_API_URL = '/api/subheadings';
 
-// Variabili globali per accesso da qualsiasi funzione
-let allMenuItemsGlobal = [];
-let allCategoriesGlobal = [];
-let currentCategoryGlobal = 'antipasti';
-let allSubheadingsGlobal = [];
-
-// Funzione GLOBALE per aprire il modal dei divisori (chiamata da onclick in HTML)
-window.openSubheadingModal = function() {
-    alert('openSubheadingModal() chiamato!');
-    console.log('openSubheadingModal() called');
-    
-    // Ottieni gli elementi dal DOM (direttamente, senza dipendere da variabili di DOMContentLoaded!)
-    const modal = document.getElementById('subheadingModal');
-    const modalTitle = document.getElementById('subheadingModalTitle');
-    const form = document.getElementById('subheadingForm');
-    const categorySelect = document.getElementById('subheadingCategory');
-    const afterSelect = document.getElementById('subheadingAfterItem');
-    const beforeSelect = document.getElementById('subheadingBeforeItem');
-    
-    if (!modal) {
-        alert('ERRORE: subheadingModal non trovato!');
-        return;
-    }
-    
-    console.log('Elementi trovati:', {modal, modalTitle, form, categorySelect, afterSelect, beforeSelect});
-    
-    // Reset form
-    if (form) form.reset();
-    
-    // Imposta titolo
-    if (modalTitle) modalTitle.textContent = 'Aggiungi Nuovo Divisore';
-    
-    // Popola le categorie
-    if (categorySelect) {
-        categorySelect.innerHTML = '<option value="">Seleziona una categoria</option>';
-        allCategoriesGlobal.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat.name;
-            option.textContent = cat.displayName;
-            categorySelect.appendChild(option);
-        });
-        categorySelect.value = currentCategoryGlobal;
-    }
-    
-    // Popola i piatti per la categoria corrente
-    if (afterSelect && beforeSelect) {
-        afterSelect.innerHTML = '<option value="">Nessuno (inizia prima)</option>';
-        beforeSelect.innerHTML = '<option value="">Nessuno (aggiungi alla fine)</option>';
-        
-        const dishesInCategory = allMenuItemsGlobal
-            .filter(item => item && item.category === currentCategoryGlobal)
-            .sort((a, b) => (a.order || 0) - (b.order || 0));
-            
-        dishesInCategory.forEach(dish => {
-            if (dish && dish._id && dish.name) {
-                const option1 = document.createElement('option');
-                option1.value = dish._id;
-                option1.textContent = `${dish.name} (Ordine: ${dish.order || 0})`;
-                afterSelect.appendChild(option1);
-                
-                const option2 = document.createElement('option');
-                option2.value = dish._id;
-                option2.textContent = `${dish.name} (Ordine: ${dish.order || 0})`;
-                beforeSelect.appendChild(option2);
-            }
-        });
-    }
-    
-    // Mostra il modal!
-    modal.style.setProperty('display', 'flex', 'important');
-    alert('Modal dovrebbe essere visibile adesso!');
-};
-
 async function fetchData(url, options = {}) {
     try {
         const token = localStorage.getItem('adminToken');
@@ -199,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Caricamento categorie...');
             const data = await fetchData(CATEGORIES_API_URL);
             allCategories = data.data || [];
-            allCategoriesGlobal = allCategories; // Sincronizza con variabile globale!
             console.log('Categorie caricate:', allCategories.length);
             renderCategoryTabs();
             populateCategorySelect();
@@ -228,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 currentCategory = cat.name;
-                currentCategoryGlobal = currentCategory; // Sincronizza globale
                 console.log('Categoria selezionata:', currentCategory);
                 loadMenuItems(currentCategory, searchInput.value);
             });
@@ -325,7 +250,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Caricamento divisori...');
             const data = await fetchData(SUBHEADINGS_API_URL);
             allSubheadings = data.data || [];
-            allSubheadingsGlobal = allSubheadings; // Sincronizza variabile globale!
             console.log('Divisori caricati:', allSubheadings.length);
             return allSubheadings;
         } catch (error) {
@@ -336,37 +260,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     async function addSubheading() {
-        alert('addSubheading() called!');
-        console.log('addSubheading() called');
         currentSubheadingId = null;
-        
+
         // Ensure we have menu items if not loaded yet
         if (!allMenuItems || allMenuItems.length === 0) {
-            console.log('Loading menu items first');
             await loadMenuItems(currentCategory);
         }
-        
+
         const modalTitle = document.getElementById('subheadingModalTitle');
-        if (!modalTitle) console.error('ERROR: subheadingModalTitle not found');
-        else modalTitle.textContent = 'Aggiungi Nuovo Divisore';
-        
-        if (!subheadingForm) console.error('ERROR: subheadingForm not found');
-        else subheadingForm.reset();
-        
+        if (modalTitle) modalTitle.textContent = 'Aggiungi Nuovo Divisore';
+
+        if (subheadingForm) subheadingForm.reset();
+
         populateCategorySelect();
         populateDishSelectsForSubheading(currentCategory);
-        
+
         const categorySelect = document.getElementById('subheadingCategory');
-        if (!categorySelect) console.error('ERROR: subheadingCategory select not found');
-        else categorySelect.value = currentCategory;
-        
-        if (!subheadingModal) {
-            console.error('ERROR: subheadingModal not found');
-            alert('Errore: elemento subheadingModal non trovato!');
-        } else {
-            console.log('subheadingModal found, setting display to flex');
-            subheadingModal.style.setProperty('display', 'flex', 'important');
-            console.log('subheadingModal.style.display:', subheadingModal.style.display);
+        if (categorySelect) categorySelect.value = currentCategory;
+
+        if (subheadingModal) {
+            subheadingModal.style.display = 'flex';
         }
     }
     
@@ -418,7 +331,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = `${API_BASE_URL}?${params.toString()}`;
             const data = await fetchData(url);
             allMenuItems = data.data || [];
-            allMenuItemsGlobal = allMenuItems; // Sincronizza variabile globale!
             console.log('Piatti caricati:', allMenuItems.length);
             renderMenuItems(allMenuItems, category, searchQuery);
             return allMenuItems;
@@ -779,22 +691,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    console.log('Checking buttons:', {addDishBtn, addCategoryBtn, addSubheadingBtn});
     addDishBtn.addEventListener('click', addDish);
     addCategoryBtn.addEventListener('click', addCategory);
     if (addSubheadingBtn) {
-        console.log('Adding click listener to addSubheadingBtn');
         addSubheadingBtn.addEventListener('click', function(e) {
-            console.log('addSubheadingBtn clicked, event:', e);
-            try {
-                addSubheading();
-            } catch (error) {
-                console.error('Error in addSubheading():', error);
-                showNotification(`Errore nell'apertura del modulo: ${error.message}`, 'error');
-            }
+            e.preventDefault();
+            addSubheading();
         });
-    } else {
-        console.error('ERROR: addSubheadingBtn element not found!');
     }
     closeModal.addEventListener('click', () => dishModal.style.display = 'none');
     cancelDish.addEventListener('click', () => dishModal.style.display = 'none');

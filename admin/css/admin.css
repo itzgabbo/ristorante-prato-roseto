@@ -938,6 +938,10 @@ tr:hover {
     align-items: center;
 }
 
+.modal[style*="display: flex"] {
+    display: flex !important;
+}
+
 .modal-content {
     background-color: white;
     border-radius: 8px;
