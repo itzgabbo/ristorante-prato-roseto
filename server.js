@@ -42,6 +42,8 @@ const menuRoutes = require('./server/routes/menu');
 const authRoutes = require('./server/routes/auth');
 const categoryRoutes = require('./server/routes/categories');
 const subheadingRoutes = require('./server/routes/subheadings');
+const tableRoutes = require('./server/routes/tables');
+const orderRoutes = require('./server/routes/orders');
 const { createBackup, restoreBackup, listBackups } = require('./server/utils/backup');
 
 // Configurazione multer per upload immagini
@@ -169,6 +171,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/subheadings', subheadingRoutes);
+app.use('/api/tables', tableRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Rotte per il backup
 app.get('/api/backup/create', protect, async (req, res) => {
@@ -195,6 +199,11 @@ app.get('/api/backup/list', protect, (req, res) => {
 app.get('/admin/dashboard.html', protect, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'dashboard.html'));
 });
+
+app.get('/admin/gestionetavoli.html', protect, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin', 'gestionetavoli.html'));
+});
+
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 app.post('/api/send-whatsapp', async (req, res) => {
