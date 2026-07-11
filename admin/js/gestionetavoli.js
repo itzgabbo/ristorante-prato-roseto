@@ -195,7 +195,20 @@ function renderMenuItems() {
         grouped[item.category].push(item);
     });
     
-    Object.keys(grouped).forEach(category => {
+    // Define category order
+    const categoryOrder = ['bevande', 'antipasti', 'primi', 'secondi', 'contorni', 'pizze', 'dessert', 'vini', 'birre'];
+    
+    // Sort categories according to the defined order, with unknown categories at the end
+    const sortedCategories = Object.keys(grouped).sort((a, b) => {
+        const indexA = categoryOrder.indexOf(a);
+        const indexB = categoryOrder.indexOf(b);
+        if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+    });
+    
+    sortedCategories.forEach(category => {
         const section = document.createElement('div');
         section.className = 'menu-section';
         section.innerHTML = `
@@ -348,22 +361,25 @@ async function addCustomDish(e) {
 // Update item quantity
 async function updateItemQuantity(itemId, newQuantity) {
     try {
+        let itemData;
         if (newQuantity <= 0) {
             // Remove item
-            const itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
+            itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
                 method: 'PUT',
                 body: JSON.stringify({ quantity: 0 })
             });
         } else {
             // Update quantity
-            const itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
+            itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
                 method: 'PUT',
                 body: JSON.stringify({ quantity: newQuantity })
             });
         }
         
-        currentOrder = itemData.data;
-        renderOrderItems();
+        if (itemData && itemData.data) {
+            currentOrder = itemData.data;
+            renderOrderItems();
+        }
     } catch (error) {
         console.error('Errore nell\'aggiornamento della quantità:', error);
         showNotification('Errore nell\'aggiornamento della quantità', 'error');
@@ -400,11 +416,12 @@ function printReceipt() {
     const receiptItems = document.getElementById('receiptItems');
     receiptItems.innerHTML = '';
     
-    // Add cover charge
+    // Add cover charge FIRST
     const coverChargeTotal = currentTable.coverCharge * currentTable.capacity;
     if (coverChargeTotal > 0) {
         const coverDiv = document.createElement('div');
         coverDiv.className = 'receipt-item';
+        coverDiv.style.fontWeight = 'bold';
         coverDiv.innerHTML = `
             <span>Coperto x${currentTable.capacity}</span>
             <span>€ ${coverChargeTotal.toFixed(2)}</span>
