@@ -153,7 +153,7 @@ function renderOrderItems() {
         return;
     }
     
-    currentOrder.items.forEach(item => {
+    currentOrder.items.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'order-item';
         div.innerHTML = `
@@ -163,16 +163,16 @@ function renderOrderItems() {
                     <div class="order-item-price">€ ${item.price.toFixed(2)}</div>
                 </div>
                 <div class="order-item-quantity">
-                    <button class="quantity-btn" onclick="updateItemQuantity('${item._id}', ${item.quantity - 1})">-</button>
+                    <button class="quantity-btn" onclick="updateItemQuantity(${index}, ${item.quantity - 1})">-</button>
                     <span>${item.quantity}</span>
-                    <button class="quantity-btn" onclick="updateItemQuantity('${item._id}', ${item.quantity + 1})">+</button>
+                    <button class="quantity-btn" onclick="updateItemQuantity(${index}, ${item.quantity + 1})">+</button>
                 </div>
             </div>
             <div class="order-item-notes">
                 <input type="text" 
                        placeholder="Note (es. Ben cotto, Senza cipolla)" 
                        value="${item.notes || ''}" 
-                       onchange="updateItemNotes('${item._id}', this.value)">
+                       onchange="updateItemNotes(${index}, this.value)">
             </div>
         `;
         container.appendChild(div);
@@ -359,18 +359,24 @@ async function addCustomDish(e) {
 }
 
 // Update item quantity
-async function updateItemQuantity(itemId, newQuantity) {
+async function updateItemQuantity(itemIndex, newQuantity) {
     try {
+        const item = currentOrder.items[itemIndex];
+        if (!item) {
+            showNotification('Item non trovato', 'error');
+            return;
+        }
+
         let itemData;
         if (newQuantity <= 0) {
             // Remove item
-            itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
+            itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${item._id}`, {
                 method: 'PUT',
                 body: JSON.stringify({ quantity: 0 })
             });
         } else {
             // Update quantity
-            itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
+            itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${item._id}`, {
                 method: 'PUT',
                 body: JSON.stringify({ quantity: newQuantity })
             });
@@ -387,14 +393,22 @@ async function updateItemQuantity(itemId, newQuantity) {
 }
 
 // Update item notes
-async function updateItemNotes(itemId, notes) {
+async function updateItemNotes(itemIndex, notes) {
     try {
-        const itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
+        const item = currentOrder.items[itemIndex];
+        if (!item) {
+            showNotification('Item non trovato', 'error');
+            return;
+        }
+
+        const itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${item._id}`, {
             method: 'PUT',
             body: JSON.stringify({ notes: notes })
         });
         
-        currentOrder = itemData.data;
+        if (itemData && itemData.data) {
+            currentOrder = itemData.data;
+        }
     } catch (error) {
         console.error('Errore nell\'aggiornamento delle note:', error);
         showNotification('Errore nell\'aggiornamento delle note', 'error');
@@ -409,19 +423,17 @@ function printReceipt() {
     }
     
     const receiptContent = document.getElementById('receiptContent');
-    document.getElementById('receiptTableName').textContent = currentTable.name;
     document.getElementById('receiptCapacity').textContent = currentTable.capacity;
     document.getElementById('receiptDate').textContent = new Date().toLocaleString('it-IT');
     
     const receiptItems = document.getElementById('receiptItems');
     receiptItems.innerHTML = '';
     
-    // Add cover charge FIRST
+    // Add cover charge FIRST (without bold)
     const coverChargeTotal = currentTable.coverCharge * currentTable.capacity;
     if (coverChargeTotal > 0) {
         const coverDiv = document.createElement('div');
         coverDiv.className = 'receipt-item';
-        coverDiv.style.fontWeight = 'bold';
         coverDiv.innerHTML = `
             <span>Coperto x${currentTable.capacity}</span>
             <span>€ ${coverChargeTotal.toFixed(2)}</span>
