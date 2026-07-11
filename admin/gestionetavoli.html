@@ -316,14 +316,19 @@
 
         .order-item {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
             padding: 1rem;
             border-bottom: 1px solid #eee;
         }
 
         .order-item:last-child {
             border-bottom: none;
+        }
+
+        .order-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .order-item-info {
@@ -338,6 +343,23 @@
         .order-item-price {
             color: #666;
             font-size: 0.9rem;
+        }
+
+        .order-item-notes {
+            margin-top: 0.5rem;
+        }
+
+        .order-item-notes input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .order-item-notes input:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .order-item-quantity {
@@ -428,6 +450,22 @@
 
         .print-actions button {
             flex: 1;
+        }
+
+        .custom-dish-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+
+        .custom-dish-btn:hover {
+            opacity: 0.9;
         }
 
         /* Receipt Styles */
@@ -559,6 +597,10 @@
                 <div class="order-total" id="orderTotal">€ 0.00</div>
             </div>
 
+            <button class="custom-dish-btn" id="addCustomDishBtn">
+                <i class="fas fa-plus"></i> Aggiungi Extra Fuori Menu
+            </button>
+
             <div class="print-actions">
                 <button class="btn btn-success" id="printReceiptBtn">
                     <i class="fas fa-print"></i> Stampa Scontrino
@@ -630,6 +672,36 @@
                     <button type="button" class="btn btn-secondary" id="cancelReceipt">Chiudi</button>
                     <button type="button" class="btn btn-success" id="confirmPrint">Stampa</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dish Modal -->
+    <div class="modal" id="customDishModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Aggiungi Extra Fuori Menu</h2>
+                <button class="close-modal" id="closeCustomDishModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="customDishForm">
+                    <div class="form-group">
+                        <label for="customDishName">Nome Piatto *</label>
+                        <input type="text" id="customDishName" name="name" class="form-control" required placeholder="es. Vino speciale del giorno">
+                    </div>
+                    <div class="form-group">
+                        <label for="customDishPrice">Prezzo (€) *</label>
+                        <input type="number" id="customDishPrice" name="price" class="form-control" required min="0" step="0.01" placeholder="es. 15.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="customDishQuantity">Quantità</label>
+                        <input type="number" id="customDishQuantity" name="quantity" class="form-control" min="1" value="1">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelCustomDish">Annulla</button>
+                        <button type="submit" class="btn btn-primary">Aggiungi</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -151,7 +151,7 @@ router.put('/:id', protect, authorize('admin'), async (req, res) => {
 // @access  Private/Admin
 router.post('/:id/items', protect, authorize('admin'), async (req, res) => {
     try {
-        const { menuItemId, name, price, quantity } = req.body;
+        const { menuItemId, name, price, quantity, notes, isCustom } = req.body;
         
         const order = await Order.findById(req.params.id);
         
@@ -162,23 +162,33 @@ router.post('/:id/items', protect, authorize('admin'), async (req, res) => {
             });
         }
         
-        // Controlla se l'item esiste già
-        const existingItemIndex = order.items.findIndex(
-            item => item.menuItemId.toString() === menuItemId
-        );
-        
-        if (existingItemIndex > -1) {
-            // Aggiorna la quantità
-            order.items[existingItemIndex].quantity += quantity || 1;
-        } else {
-            // Aggiungi nuovo item
-            order.items.push({
-                menuItemId,
-                name,
-                price,
-                quantity: quantity || 1
-            });
+        // Controlla se l'item esiste già (solo per non-custom items)
+        if (!isCustom && menuItemId) {
+            const existingItemIndex = order.items.findIndex(
+                item => item.menuItemId && item.menuItemId.toString() === menuItemId
+            );
+            
+            if (existingItemIndex > -1) {
+                // Aggiorna la quantità
+                order.items[existingItemIndex].quantity += quantity || 1;
+                order.status = 'in_corso';
+                await order.save();
+                return res.status(200).json({
+                    success: true,
+                    data: order
+                });
+            }
         }
+        
+        // Aggiungi nuovo item
+        order.items.push({
+            menuItemId: menuItemId || null,
+            name,
+            price,
+            quantity: quantity || 1,
+            notes: notes || '',
+            isCustom: isCustom || false
+        });
         
         order.status = 'in_corso';
         await order.save();
@@ -201,7 +211,7 @@ router.post('/:id/items', protect, authorize('admin'), async (req, res) => {
 // @access  Private/Admin
 router.put('/:id/items/:itemId', protect, authorize('admin'), async (req, res) => {
     try {
-        const { quantity } = req.body;
+        const { quantity, notes } = req.body;
         
         const order = await Order.findById(req.params.id);
         
@@ -227,8 +237,11 @@ router.put('/:id/items/:itemId', protect, authorize('admin'), async (req, res) =
             // Rimuovi l'item
             order.items.splice(itemIndex, 1);
         } else {
-            // Aggiorna la quantità
+            // Aggiorna la quantità e le note
             order.items[itemIndex].quantity = quantity;
+            if (notes !== undefined) {
+                order.items[itemIndex].notes = notes;
+            }
         }
         
         await order.save();

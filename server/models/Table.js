@@ -13,6 +13,11 @@ const tableSchema = new mongoose.Schema({
         min: [1, 'Il numero di coperti deve essere almeno 1'],
         max: [50, 'Il numero di coperti non può superare 50']
     },
+    coverCharge: {
+        type: Number,
+        default: 2.00,
+        min: [0, 'Il costo del coperto non può essere negativo']
+    },
     status: {
         type: String,
         enum: ['libero', 'occupato', 'in_corso'],

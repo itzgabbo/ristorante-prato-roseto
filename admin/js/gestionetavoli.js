@@ -157,14 +157,22 @@ function renderOrderItems() {
         const div = document.createElement('div');
         div.className = 'order-item';
         div.innerHTML = `
-            <div class="order-item-info">
-                <div class="order-item-name">${item.name}</div>
-                <div class="order-item-price">€ ${item.price.toFixed(2)}</div>
+            <div class="order-item-header">
+                <div class="order-item-info">
+                    <div class="order-item-name">${item.name}</div>
+                    <div class="order-item-price">€ ${item.price.toFixed(2)}</div>
+                </div>
+                <div class="order-item-quantity">
+                    <button class="quantity-btn" onclick="updateItemQuantity('${item._id}', ${item.quantity - 1})">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="quantity-btn" onclick="updateItemQuantity('${item._id}', ${item.quantity + 1})">+</button>
+                </div>
             </div>
-            <div class="order-item-quantity">
-                <button class="quantity-btn" onclick="updateItemQuantity('${item._id}', ${item.quantity - 1})">-</button>
-                <span>${item.quantity}</span>
-                <button class="quantity-btn" onclick="updateItemQuantity('${item._id}', ${item.quantity + 1})">+</button>
+            <div class="order-item-notes">
+                <input type="text" 
+                       placeholder="Note (es. Ben cotto, Senza cipolla)" 
+                       value="${item.notes || ''}" 
+                       onchange="updateItemNotes('${item._id}', this.value)">
             </div>
         `;
         container.appendChild(div);
@@ -250,6 +258,57 @@ async function addItemToOrder(menuItem) {
                 })
             });
             currentOrder = orderData.data;
+
+            // Update table status
+            await fetchData(`${TABLES_API_URL}/${currentTable._id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    status: 'in_corso',
+                    currentOrderId: currentOrder._id
+                })
+            });
+        }
+
+        // Add item to order
+        const itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items`, {
+            method: 'POST',
+            body: JSON.stringify({
+                menuItemId: menuItem._id,
+                name: menuItem.name,
+                price: menuItem.price,
+                quantity: 1,
+                isCustom: false
+            })
+        });
+
+        currentOrder = itemData.data;
+        renderOrderItems();
+        showNotification(`${menuItem.name} aggiunto all'ordine`, 'success');
+    } catch (error) {
+        console.error('Errore nell\'aggiunta dell\'item:', error);
+        showNotification('Errore nell\'aggiunta dell\'item', 'error');
+    }
+}
+
+// Add custom dish to order
+async function addCustomDish(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('customDishName').value;
+    const price = parseFloat(document.getElementById('customDishPrice').value);
+    const quantity = parseInt(document.getElementById('customDishQuantity').value) || 1;
+    
+    try {
+        // Create order if doesn't exist
+        if (!currentOrder) {
+            const orderData = await fetchData(ORDERS_API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    tableId: currentTable._id,
+                    items: []
+                })
+            });
+            currentOrder = orderData.data;
             
             // Update table status
             await fetchData(`${TABLES_API_URL}/${currentTable._id}`, {
@@ -261,23 +320,28 @@ async function addItemToOrder(menuItem) {
             });
         }
         
-        // Add item to order
+        // Add custom dish to order
         const itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items`, {
             method: 'POST',
             body: JSON.stringify({
-                menuItemId: menuItem._id,
-                name: menuItem.name,
-                price: menuItem.price,
-                quantity: 1
+                menuItemId: null,
+                name: name,
+                price: price,
+                quantity: quantity,
+                isCustom: true
             })
         });
         
         currentOrder = itemData.data;
         renderOrderItems();
-        showNotification(`${menuItem.name} aggiunto all'ordine`, 'success');
+        showNotification(`${name} aggiunto all'ordine`, 'success');
+        
+        // Close modal and reset form
+        document.getElementById('customDishModal').classList.remove('active');
+        document.getElementById('customDishForm').reset();
     } catch (error) {
-        console.error('Errore nell\'aggiunta dell\'item:', error);
-        showNotification('Errore nell\'aggiunta dell\'item', 'error');
+        console.error('Errore nell\'aggiunta del piatto personalizzato:', error);
+        showNotification('Errore nell\'aggiunta del piatto personalizzato', 'error');
     }
 }
 
@@ -306,6 +370,21 @@ async function updateItemQuantity(itemId, newQuantity) {
     }
 }
 
+// Update item notes
+async function updateItemNotes(itemId, notes) {
+    try {
+        const itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${itemId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ notes: notes })
+        });
+        
+        currentOrder = itemData.data;
+    } catch (error) {
+        console.error('Errore nell\'aggiornamento delle note:', error);
+        showNotification('Errore nell\'aggiornamento delle note', 'error');
+    }
+}
+
 // Print receipt
 function printReceipt() {
     if (!currentOrder || currentOrder.items.length === 0) {
@@ -321,17 +400,36 @@ function printReceipt() {
     const receiptItems = document.getElementById('receiptItems');
     receiptItems.innerHTML = '';
     
+    // Add cover charge
+    const coverChargeTotal = currentTable.coverCharge * currentTable.capacity;
+    if (coverChargeTotal > 0) {
+        const coverDiv = document.createElement('div');
+        coverDiv.className = 'receipt-item';
+        coverDiv.innerHTML = `
+            <span>Coperto x${currentTable.capacity}</span>
+            <span>€ ${coverChargeTotal.toFixed(2)}</span>
+        `;
+        receiptItems.appendChild(coverDiv);
+    }
+    
+    // Add order items
     currentOrder.items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'receipt-item';
+        let itemName = `${item.quantity}x ${item.name}`;
+        if (item.notes) {
+            itemName += ` (${item.notes})`;
+        }
         div.innerHTML = `
-            <span>${item.quantity}x ${item.name}</span>
+            <span>${itemName}</span>
             <span>€ ${(item.price * item.quantity).toFixed(2)}</span>
         `;
         receiptItems.appendChild(div);
     });
     
-    document.getElementById('receiptTotal').textContent = `€ ${currentOrder.total.toFixed(2)}`;
+    // Calculate total with cover charge
+    const totalWithCover = currentOrder.total + coverChargeTotal;
+    document.getElementById('receiptTotal').textContent = `€ ${totalWithCover.toFixed(2)}`;
     
     receiptContent.classList.add('active');
     document.getElementById('receiptModal').classList.add('active');
@@ -459,6 +557,21 @@ function setupEventListeners() {
     
     // Close table
     document.getElementById('closeTableBtn').addEventListener('click', closeTable);
+    
+    // Custom dish modal
+    document.getElementById('addCustomDishBtn').addEventListener('click', () => {
+        document.getElementById('customDishModal').classList.add('active');
+    });
+    
+    document.getElementById('closeCustomDishModal').addEventListener('click', () => {
+        document.getElementById('customDishModal').classList.remove('active');
+    });
+    
+    document.getElementById('cancelCustomDish').addEventListener('click', () => {
+        document.getElementById('customDishModal').classList.remove('active');
+    });
+    
+    document.getElementById('customDishForm').addEventListener('submit', addCustomDish);
     
     // Close modals on outside click
     window.addEventListener('click', (e) => {
