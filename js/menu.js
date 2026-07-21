@@ -216,6 +216,8 @@ function setupCategoryButtons() {
     allButtons.forEach(button => {
         button.addEventListener('click', () => {
             const category = button.getAttribute('data-category');
+            const isBottomButton = button.closest('#category-bar-bottom');
+            
             allButtons.forEach(btn => {
                 btn.classList.toggle('active', btn.getAttribute('data-category') === category);
             });
@@ -223,6 +225,11 @@ function setupCategoryButtons() {
             sections.forEach(section => {
                 section.style.display = section.id === category ? 'block' : 'none';
             });
+            
+            // Scroll to top if clicking from bottom category bar
+            if (isBottomButton) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         });
     });
 }
