@@ -226,9 +226,12 @@ function setupCategoryButtons() {
                 section.style.display = section.id === category ? 'block' : 'none';
             });
             
-            // Scroll to top if clicking from bottom category bar
+            // Scroll to category section if clicking from bottom category bar
             if (isBottomButton) {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const categorySection = document.getElementById(category);
+                if (categorySection) {
+                    categorySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             }
         });
     });
