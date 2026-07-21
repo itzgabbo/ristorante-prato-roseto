@@ -1,0 +1,15 @@
+name: Keep-Alive Render Server
+
+on:
+  schedule:
+    # Esegue il ping ogni 10 minuti
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Permette di avviarlo anche manualmente da GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Ping Request
+        run: |
+          curl -s -f https://ristorantepratoroseto.it/ > /dev/null && echo "Ping successful!" || echo "Ping failed!"
