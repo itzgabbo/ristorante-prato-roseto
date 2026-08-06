@@ -784,44 +784,117 @@
         }
 
         @media (max-width: 576px) {
-            .holiday-modal {
-                padding: 35px 25px;
-                border-radius: 20px;
+            .holiday-modal-overlay {
+                padding: 12px;
             }
 
-            .holiday-modal-title {
-                font-size: 1.55rem;
+            .holiday-modal {
+                padding: 28px 20px 24px;
+                border-radius: 18px;
+                border-width: 2px;
+                max-width: 100%;
             }
 
             .holiday-modal-icon {
-                font-size: 2.5rem;
+                font-size: 2.2rem;
+                margin-bottom: 8px;
+            }
+
+            .holiday-modal-title {
+                font-size: 1.35rem;
+                margin-bottom: 18px;
+            }
+
+            .holiday-modal-period {
+                padding: 12px 14px;
+                border-left-width: 3px;
+                margin-bottom: 16px;
+                border-radius: 10px;
             }
 
             .holiday-modal-period p {
-                font-size: 0.98rem;
+                font-size: 0.92rem;
+                margin-bottom: 6px;
+                line-height: 1.45;
             }
 
             .holiday-modal-reopen {
+                font-size: 0.92rem;
+                padding: 10px 14px;
+                margin-bottom: 16px;
+                border-radius: 10px;
+                letter-spacing: 0.2px;
+            }
+
+            .holiday-divider {
+                margin: 10px 0;
+                gap: 8px;
+            }
+
+            .holiday-divider span {
                 font-size: 1rem;
-                padding: 12px 18px;
             }
 
             .holiday-modal-message {
-                font-size: 1rem;
+                font-size: 0.92rem;
+                line-height: 1.55;
+                margin-bottom: 14px;
+            }
+
+            .holiday-modal-signature {
+                font-size: 0.98rem;
+                margin-bottom: 20px;
+                padding-top: 10px;
             }
 
             .holiday-modal-btn {
-                padding: 14px 32px;
-                font-size: 0.95rem;
+                padding: 12px 24px;
+                font-size: 0.9rem;
                 width: 100%;
             }
 
             .holiday-modal-close {
-                top: 12px;
-                right: 14px;
-                width: 34px;
-                height: 34px;
-                font-size: 1.4rem;
+                top: 8px;
+                right: 10px;
+                width: 32px;
+                height: 32px;
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .holiday-modal {
+                padding: 24px 16px 20px;
+            }
+
+            .holiday-modal-title {
+                font-size: 1.22rem;
+            }
+
+            .holiday-modal-icon {
+                font-size: 2rem;
+            }
+
+            .holiday-modal-period p {
+                font-size: 0.88rem;
+            }
+
+            .holiday-modal-reopen {
+                font-size: 0.88rem;
+                padding: 9px 12px;
+            }
+
+            .holiday-modal-message {
+                font-size: 0.88rem;
+            }
+
+            .holiday-modal-signature {
+                font-size: 0.9rem;
+            }
+
+            .holiday-modal-btn {
+                padding: 11px 20px;
+                font-size: 0.86rem;
             }
         }
     </style>
@@ -1165,9 +1238,18 @@
     <script>
         // Holiday Notice Modal
         (function() {
+            // ⚙️ CONFIGURAZIONE SCADENZA — Modifica questa data per rimuovere/estendere l'avviso
+            // Il modal si mostra FINO A MEZZANOTTE di questa data (inclusa)
+            const SCADENZA = new Date(2026, 7, 31, 0, 0, 0); // 31 agosto 2026 00:00 (mese 7 = agosto, 0-based)
+
             const modal = document.getElementById('holidayModal');
             const closeBtn = document.getElementById('holidayCloseBtn');
             const ctaBtn = document.getElementById('holidayCtaBtn');
+
+            function isNoticeActive() {
+                const now = new Date();
+                return now.getTime() < SCADENZA.getTime();
+            }
 
             function openModal() {
                 if (!modal) return;
@@ -1183,7 +1265,7 @@
                 document.body.style.overflow = '';
             }
 
-            if (modal) {
+            if (modal && isNoticeActive()) {
                 window.addEventListener('load', function() {
                     setTimeout(openModal, 300);
                 });
@@ -1202,6 +1284,8 @@
                         closeModal();
                     }
                 });
+            } else if (modal) {
+                modal.remove();
             }
         })();
 
