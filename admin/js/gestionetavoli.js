@@ -360,35 +360,50 @@ async function addCustomDish(e) {
 
 // Update item quantity
 async function updateItemQuantity(itemIndex, newQuantity) {
+    console.log('updateItemQuantity called with:', { itemIndex, newQuantity });
+    console.log('currentOrder:', currentOrder);
+    console.log('currentOrder.items:', currentOrder.items);
+    
     try {
         const item = currentOrder.items[itemIndex];
         if (!item) {
+            console.error('Item not found at index:', itemIndex);
             showNotification('Item non trovato', 'error');
             return;
         }
 
+        console.log('Item to update:', item);
+        console.log('API URL:', `${ORDERS_API_URL}/${currentOrder._id}/items/${item._id}`);
+
         let itemData;
         if (newQuantity <= 0) {
             // Remove item
+            console.log('Removing item');
             itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${item._id}`, {
                 method: 'PUT',
                 body: JSON.stringify({ quantity: 0 })
             });
         } else {
             // Update quantity
+            console.log('Updating quantity to:', newQuantity);
             itemData = await fetchData(`${ORDERS_API_URL}/${currentOrder._id}/items/${item._id}`, {
                 method: 'PUT',
                 body: JSON.stringify({ quantity: newQuantity })
             });
         }
         
+        console.log('API response:', itemData);
+        
         if (itemData && itemData.data) {
             currentOrder = itemData.data;
             renderOrderItems();
+        } else {
+            console.error('No data in response');
+            showNotification('Errore nella risposta del server', 'error');
         }
     } catch (error) {
         console.error('Errore nell\'aggiornamento della quantità:', error);
-        showNotification('Errore nell\'aggiornamento della quantità', 'error');
+        showNotification('Errore nell\'aggiornamento della quantità: ' + error.message, 'error');
     }
 }
 
